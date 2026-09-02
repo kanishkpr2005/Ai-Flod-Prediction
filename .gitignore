@@ -10,3 +10,16 @@ __pycache__/
 *.db
 __pycache__/
 *.py[cod]
+
+# Large data files
+data/raw/**/*.nc4
+data/raw/**/*.zip
+data/raw/**/*.zip.part
+*.pkl
+*.pkl.gz
+models/**/*.pkl
+*.csv
+!frontend/
+.next/
+dist/
+build/
