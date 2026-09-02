@@ -1,0 +1,22 @@
+text,disaster_type,severity
+Heavy rainfall causing flooding in the city,Flood,High
+River water has crossed the danger level,Flood,High
+Water entered residential areas after continuous rain,Flood,High
+Minor flooding reported after heavy rain,Flood,Medium
+Roads are flooded due to rainfall,Flood,Medium
+Strong earthquake felt across the region,Earthquake,High
+Buildings damaged after a major earthquake,Earthquake,High
+Earthquake tremors reported by residents,Earthquake,Medium
+Severe cyclone approaching the coastal area,Cyclone,High
+Strong winds and heavy rain due to cyclone,Cyclone,High
+Cyclone warning issued for coastal districts,Cyclone,Medium
+Large forest area affected by fire,Wildfire,High
+Forest fire spreading rapidly due to strong winds,Wildfire,High
+Small fire reported in forest area,Wildfire,Medium
+Landslide blocked the main road,Landslide,High
+Heavy rainfall triggered a landslide,Landslide,High
+Small landslide reported in hilly area,Landslide,Medium
+Extreme heat reported across the region,Heatwave,High
+Very high temperature recorded for several days,Heatwave,Medium
+Tsunami warning issued after an undersea earthquake,Tsunami,High
+Large waves approaching the coastal area,Tsunami,High

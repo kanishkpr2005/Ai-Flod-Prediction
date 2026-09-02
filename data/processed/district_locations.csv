@@ -1,0 +1,591 @@
+state,district,latitude,longitude,coordinate_source
+Andaman and Nicobar,Andaman Islands,13.2277144,92.9394925,cache/manual
+Andaman and Nicobar,Nicobar Islands,7.0000167,93.8110528,cache/manual
+Andhra Pradesh,Adilabad,19.6759452,78.5339895,cache/manual
+Andhra Pradesh,Anantapur,14.6783221,77.6065039,cache/manual
+Andhra Pradesh,Chittoor,13.325036,79.6480611,cache/manual
+Andhra Pradesh,Cuddapah,14.4956602,78.8349278,cache/manual
+Andhra Pradesh,East Godavari,16.9956639,81.7154378,cache/manual
+Andhra Pradesh,Guntur,16.2915189,80.4541588,cache/manual
+Andhra Pradesh,Hyderabad,15.8136411,78.0275033,cache/manual
+Andhra Pradesh,Karimnagar,18.4348122,79.1328042,cache/manual
+Andhra Pradesh,Khammam,17.0786014,81.2610665,cache/manual
+Andhra Pradesh,Krishna,16.2135466,81.0277844,cache/manual
+Andhra Pradesh,Kurnool,15.8309251,78.0425373,cache/manual
+Andhra Pradesh,Mahbubnagar,14.4110136,78.9746385,cache/manual
+Andhra Pradesh,Medak,17.9375095,78.211745,cache/manual
+Andhra Pradesh,Nalgonda,17.0504406,79.2669235,cache/manual
+Andhra Pradesh,Nellore,14.4493717,79.9873763,cache/manual
+Andhra Pradesh,Nizamabad,18.3019069,84.0237423,cache/manual
+Andhra Pradesh,Prakasam,15.5641955,80.0066786,cache/manual
+Andhra Pradesh,Rangareddy,17.4065,78.4772,cache/manual
+Andhra Pradesh,Srikakulam,18.2949307,83.8938844,cache/manual
+Andhra Pradesh,Visakhapatnam,17.6868,83.2185,cache/manual
+Andhra Pradesh,Vizianagaram,18.1141255,83.4114389,cache/manual
+Andhra Pradesh,Warangal,17.9820644,79.5970954,cache/manual
+Andhra Pradesh,West Godavari,16.6443029,81.5885247,cache/manual
+Arunachal Pradesh,Changlang,27.2698797,96.0602442,cache/manual
+Arunachal Pradesh,East Kameng,27.557781,93.0753012,cache/manual
+Arunachal Pradesh,East Siang,28.0742219,95.4178149,cache/manual
+Arunachal Pradesh,Kurung Kumey,27.9863677,93.1578347,cache/manual
+Arunachal Pradesh,Lohit,28.0350162,96.1713515,cache/manual
+Arunachal Pradesh,Lower Dibang Valley,28.2149563,95.878774,cache/manual
+Arunachal Pradesh,Lower Subansiri,27.6059753,93.8669707,cache/manual
+Arunachal Pradesh,Papum Pare,27.2863667,93.6187716,cache/manual
+Arunachal Pradesh,Tawang,27.5879186,91.863733,cache/manual
+Arunachal Pradesh,Tirap,27.030169,95.4979175,cache/manual
+Arunachal Pradesh,Upper Dibang Valley,28.8,95.7,cache/manual
+Arunachal Pradesh,Upper Siang,28.7312046,95.0377315,cache/manual
+Arunachal Pradesh,Upper Subansiri,28.2596054,94.0938106,cache/manual
+Arunachal Pradesh,West Kameng,27.2986936,92.4741211,cache/manual
+Arunachal Pradesh,West Siang,28.1970922,94.48407,cache/manual
+Assam,Barpeta,26.345941,91.039708,cache/manual
+Assam,Bongaigaon,26.4800126,90.5580387,cache/manual
+Assam,Cachar,24.75864,92.8816648,cache/manual
+Assam,Darrang,26.4373481,92.0047145,cache/manual
+Assam,Dhemaji,27.5945155,94.7192098,cache/manual
+Assam,Dhubri,26.132275,90.1249962,cache/manual
+Assam,Dibrugarh,27.4728,94.912,cache/manual
+Assam,Dima Hasao,25.4003625,93.0752292,cache/manual
+Assam,Goalpara,26.0491877,90.6001859,cache/manual
+Assam,Golaghat,26.5108262,93.9743686,cache/manual
+Assam,Hailakandi,24.6846916,92.5645836,cache/manual
+Assam,Jorhat,26.7577925,94.2079645,cache/manual
+Assam,Kamrup,26.1468861,91.2227397,cache/manual
+Assam,Karbi Anglong,26.0712781,93.4552969,cache/manual
+Assam,Karimganj,24.5828196,92.3725487,cache/manual
+Assam,Kokrajhar,26.4912104,90.1215209,cache/manual
+Assam,Lakhimpur,27.1763356,94.1992932,cache/manual
+Assam,Morigaon,26.2545556,92.3572669,cache/manual
+Assam,Nagaon,26.3313646,92.7524763,cache/manual
+Assam,Nalbari,26.3533632,91.3983662,cache/manual
+Assam,Sivasagar,26.9834936,94.6394226,cache/manual
+Assam,Sonitpur,26.7677707,92.7014089,cache/manual
+Assam,Tinsukia,27.4879722,95.3601855,cache/manual
+Bihar,Araria,26.1346459,87.4654062,cache/manual
+Bihar,Banka,24.8328273,86.8161114,cache/manual
+Bihar,Begusarai,25.5125411,86.0883392,cache/manual
+Bihar,Bhagalpur,25.2425,86.9842,cache/manual
+Bihar,Bhojpur,25.4501182,84.5635193,cache/manual
+Bihar,Buxar,25.5044834,84.1097525,cache/manual
+Bihar,Chhatrapati Sambhajinagar,19.877263,75.3390241,cache/manual
+Bihar,Darbhanga,26.0829899,86.0324951,cache/manual
+Bihar,East Champaran,26.6393261,84.8990136,cache/manual
+Bihar,Gaya,24.7914,85.0002,cache/manual
+Bihar,Gopalganj,26.4211166,84.3739133,cache/manual
+Bihar,Jamui,24.7562514,86.3011128,cache/manual
+Bihar,Jehanabad,25.1529579,85.0065043,cache/manual
+Bihar,Kaimur,24.975466,83.5768379,cache/manual
+Bihar,Katihar,25.5586421,87.6457196,cache/manual
+Bihar,Khagaria,25.4930513,86.6982264,cache/manual
+Bihar,Kishanganj,26.2984144,87.9466715,cache/manual
+Bihar,Lakhisarai,25.1543938,86.1744959,cache/manual
+Bihar,Madhepura,25.7806118,86.9364753,cache/manual
+Bihar,Madhubani,26.3503076,86.2296424,cache/manual
+Bihar,Munger,25.2202864,86.5161484,cache/manual
+Bihar,Muzaffarpur,26.1209,85.3647,cache/manual
+Bihar,Nalanda,25.1364914,85.4436546,cache/manual
+Bihar,Nawada,24.8173249,85.5179085,cache/manual
+Bihar,Patna,25.5941,85.1376,cache/manual
+Bihar,Purnia,25.7771,87.4753,cache/manual
+Bihar,Rohtas,24.9394143,84.0197031,cache/manual
+Bihar,Saharsa,25.8330757,86.6143751,cache/manual
+Bihar,Samastipur,25.7747885,85.8672314,cache/manual
+Bihar,Saran,25.9214451,84.7759731,cache/manual
+Bihar,Sheikhpura,25.1250741,85.8160771,cache/manual
+Bihar,Sheohar,26.4934234,85.2717561,cache/manual
+Bihar,Sitamarhi,26.5942841,85.500428,cache/manual
+Bihar,Siwan,26.2196,84.3567,cache/manual
+Bihar,Supaul,26.2768089,86.7959614,cache/manual
+Bihar,Vaishali,25.7491703,85.3972164,cache/manual
+Bihar,West Champaran,27.0518367,84.3351209,cache/manual
+Chandigarh,Chandigarh,30.7334421,76.7797143,cache/manual
+Chhattisgarh,Bastar,19.1191283,81.8291865,cache/manual
+Chhattisgarh,Bilaspur,22.1638486,82.1365923,cache/manual
+Chhattisgarh,Dantewada,18.8640648,81.3833947,cache/manual
+Chhattisgarh,Dhamtari,20.5326259,81.7155987,cache/manual
+Chhattisgarh,Durg,21.1982964,81.4007922,cache/manual
+Chhattisgarh,Janjgir-Champa,21.986403,82.5536606,cache/manual
+Chhattisgarh,Jashpur,22.770251,83.9708013,cache/manual
+Chhattisgarh,Kanker,20.2692747,81.4932111,cache/manual
+Chhattisgarh,Kawardha,22.01,81.23,cache/manual
+Chhattisgarh,Korba,22.5198217,82.6350029,cache/manual
+Chhattisgarh,Koriya,23.476254,82.4776374,cache/manual
+Chhattisgarh,Mahasamund,21.1922846,82.4890263,cache/manual
+Chhattisgarh,Raigarh,22.2361795,83.3529534,cache/manual
+Chhattisgarh,Raipur,21.2514,81.6296,cache/manual
+Chhattisgarh,Raj Nandgaon,22.6881652,77.2851373,cache/manual
+Chhattisgarh,Surguja,22.9470108,83.1656868,cache/manual
+Dadra and Nagar Haveli,Dadra and Nagar Haveli,20.233792,73.0495173,cache/manual
+Daman and Diu,Junagadh,21.5220416,70.4582458,cache/manual
+Delhi,Delhi,28.6664535,77.2169781,cache/manual
+Goa,North Goa,15.6038925,73.9967006,cache/manual
+Goa,South Goa,15.3376121,73.9937035,cache/manual
+Gujarat,Ahmedabad,23.0225,72.5714,cache/manual
+Gujarat,Amreli,21.4176122,71.249609,cache/manual
+Gujarat,Anand,22.4739858,72.7361779,cache/manual
+Gujarat,Banaskantha,24.2693869,72.5367513,cache/manual
+Gujarat,Bharuch,21.7080427,72.9956936,cache/manual
+Gujarat,Bhavnagar,21.7718836,72.1416449,cache/manual
+Gujarat,Dahod,22.9194099,74.1342725,cache/manual
+Gujarat,Dang,20.7881718,73.7092033,cache/manual
+Gujarat,Gandhinagar,23.2232877,72.6492267,cache/manual
+Gujarat,Jamnagar,22.4732415,70.0552102,cache/manual
+Gujarat,Junagadh,21.5220416,70.4582458,cache/manual
+Gujarat,Kachchh,23.583333,70.0,cache/manual
+Gujarat,Kheda,22.8532503,72.9953586,cache/manual
+Gujarat,Mahesana,23.6015557,72.3867981,cache/manual
+Gujarat,Narmada,21.7392624,73.6262458,cache/manual
+Gujarat,Navsari,20.9467,72.952,cache/manual
+Gujarat,Panchmahal,22.6978099,73.5980682,cache/manual
+Gujarat,Patan,23.773753,71.6798581,cache/manual
+Gujarat,Porbandar,21.6505229,69.6565371,cache/manual
+Gujarat,Rajkot,22.3039,70.8022,cache/manual
+Gujarat,Sabarkantha,23.8688505,73.013784,cache/manual
+Gujarat,Surat,21.2094892,72.8317058,cache/manual
+Gujarat,Surendranagar,22.8251395,71.6209736,cache/manual
+Gujarat,Vadodara,22.2973142,73.1942567,cache/manual
+Gujarat,Valsad,20.4321957,73.1409893,cache/manual
+Haryana,Ambala,30.3843674,76.770421,cache/manual
+Haryana,Bhiwani,28.7931703,76.1391283,cache/manual
+Haryana,Faridabad,28.4031478,77.3105561,cache/manual
+Haryana,Fatehabad,29.5359209,75.5752901,cache/manual
+Haryana,Gurgaon,28.4646148,77.0299194,cache/manual
+Haryana,Hisar,29.2396596,75.8174505,cache/manual
+Haryana,Jhajjar,28.5964461,76.6505366,cache/manual
+Haryana,Jind,29.3152073,76.314082,cache/manual
+Haryana,Kaithal,29.7996588,76.3989903,cache/manual
+Haryana,Karnal,29.7255766,76.9106924,cache/manual
+Haryana,Kurukshetra,29.9693747,76.8482787,cache/manual
+Haryana,Mahendragarh,28.1326971,76.1697448,cache/manual
+Haryana,Panchkula,30.6975401,76.8551066,cache/manual
+Haryana,Panipat,29.3912753,76.9771675,cache/manual
+Haryana,Rewari,28.1956468,76.6165179,cache/manual
+Haryana,Rohtak,28.9010899,76.5801935,cache/manual
+Haryana,Sirsa,29.6063041,74.9036568,cache/manual
+Haryana,Sonepat,28.99197,77.0342633,cache/manual
+Haryana,Yamuna Nagar,30.1389108,77.301064,cache/manual
+Himachal Pradesh,Bilaspur,31.3380959,76.7611631,cache/manual
+Himachal Pradesh,Chamba,32.6923316,76.1631552,cache/manual
+Himachal Pradesh,Hamirpur,31.6539866,76.5403633,cache/manual
+Himachal Pradesh,Kangra,32.0768665,76.2985872,cache/manual
+Himachal Pradesh,Kinnaur,31.593013,78.3281417,cache/manual
+Himachal Pradesh,Kullu,31.9578974,77.1089232,cache/manual
+Himachal Pradesh,Lahaul and Spiti,32.57,77.03,cache/manual
+Himachal Pradesh,Mandi,31.6516617,77.0092542,cache/manual
+Himachal Pradesh,Shimla,31.1040393,77.1707923,cache/manual
+Himachal Pradesh,Sirmaur,30.6991321,77.4465304,cache/manual
+Himachal Pradesh,Solan,30.9077569,77.1023645,cache/manual
+Himachal Pradesh,Una,31.5834642,76.2351452,cache/manual
+Jammu and Kashmir,Anantnag,33.74611,75.1854475,cache/manual
+Jammu and Kashmir,Baramulla,34.2086903,74.343498,cache/manual
+Jammu and Kashmir,Budgam,33.9098746,74.6270357,cache/manual
+Jammu and Kashmir,Doda,33.1341373,75.587915,cache/manual
+Jammu and Kashmir,Jammu,32.7185614,74.8580917,cache/manual
+Jammu and Kashmir,Kargil,32.7045476,74.871206,cache/manual
+Jammu and Kashmir,Kathua,32.3765524,75.5243044,cache/manual
+Jammu and Kashmir,Kupwara,34.526,74.256,cache/manual
+Jammu and Kashmir,Leh,34.1664372,74.808529,cache/manual
+Jammu and Kashmir,Poonch,33.7670004,74.0957143,cache/manual
+Jammu and Kashmir,Pulwama,33.9490472,75.0418335,cache/manual
+Jammu and Kashmir,Rajouri,33.3772495,74.3132332,cache/manual
+Jammu and Kashmir,Srinagar,34.0747444,74.8204443,cache/manual
+Jammu and Kashmir,Udhampur,32.9219726,75.1331482,cache/manual
+Jharkhand,Bokaro,23.6991279,85.9910689,cache/manual
+Jharkhand,Chatra,24.1062316,84.8623379,cache/manual
+Jharkhand,Deoghar,24.4898318,86.6990182,cache/manual
+Jharkhand,Dhanbad,23.7952809,86.4309638,cache/manual
+Jharkhand,Dumka,24.2677937,87.2485495,cache/manual
+Jharkhand,East Singhbhum,22.8046,86.2029,cache/manual
+Jharkhand,Garhwa,24.053577,83.6526818,cache/manual
+Jharkhand,Giridih,24.3314546,86.1548117,cache/manual
+Jharkhand,Godda,24.8645886,87.2984838,cache/manual
+Jharkhand,Gumla,23.1603759,84.4599565,cache/manual
+Jharkhand,Hazaribag,23.9924352,85.3616252,cache/manual
+Jharkhand,Jamtara,23.9801639,86.9243637,cache/manual
+Jharkhand,Koderma,24.4931239,85.5560811,cache/manual
+Jharkhand,Latehar,23.6880057,84.4969551,cache/manual
+Jharkhand,Lohardaga,23.4770044,84.6986684,cache/manual
+Jharkhand,Pakur,24.5325908,87.593232,cache/manual
+Jharkhand,Palamu,24.2212983,84.1725565,cache/manual
+Jharkhand,Ranchi,23.3700501,85.3250387,cache/manual
+Jharkhand,Sahibganj,25.0320437,87.691764,cache/manual
+Jharkhand,Saraikela Kharsawan,22.7464225,85.9168929,cache/manual
+Jharkhand,Simdega,22.5904573,84.5464805,cache/manual
+Jharkhand,West Singhbhum,22.558,85.788,cache/manual
+Karnataka,Bagalkot,16.1793224,75.6999315,cache/manual
+Karnataka,Ballari,15.3483166,76.8054883,cache/manual
+Karnataka,Bangalore Rural,13.0010872,77.3361225,cache/manual
+Karnataka,Bangalore Urban,13.0,77.583333,cache/manual
+Karnataka,Belagavi,16.1587846,74.888862,cache/manual
+Karnataka,Bidar,18.0207297,77.2487204,cache/manual
+Karnataka,Chamarajanagar,11.9544201,77.1069086,cache/manual
+Karnataka,Chikkamagaluru,13.4058699,75.638758,cache/manual
+Karnataka,Chitradurga,14.3049174,76.5296667,cache/manual
+Karnataka,Dakshina Kannada,12.8226434,75.2265036,cache/manual
+Karnataka,Davanagere,14.2558835,75.8303421,cache/manual
+Karnataka,Dharwad,15.3707296,75.1332867,cache/manual
+Karnataka,Gadag,15.416692,75.6815801,cache/manual
+Karnataka,Hassan,13.0301852,76.1744968,cache/manual
+Karnataka,Haveri,14.7180268,75.3656423,cache/manual
+Karnataka,Kalaburagi,17.2408957,76.7697439,cache/manual
+Karnataka,Kodagu,12.3827332,75.6640715,cache/manual
+Karnataka,Kolar,13.1805066,78.2669329,cache/manual
+Karnataka,Koppal,15.5748238,76.3118494,cache/manual
+Karnataka,Mandya,12.6368939,76.7275477,cache/manual
+Karnataka,Mysuru,12.3041464,76.6529521,cache/manual
+Karnataka,Raichur,16.0547194,76.9003647,cache/manual
+Karnataka,Shivamogga,13.9326093,75.574978,cache/manual
+Karnataka,Tumakuru,13.4192512,76.8810004,cache/manual
+Karnataka,Udupi,13.5269784,74.8731879,cache/manual
+Karnataka,Uttara Kannada,14.7253795,74.6403389,cache/manual
+Karnataka,Vijayapura,16.814415,75.8933856,cache/manual
+Kerala,Alappuzha,9.5003416,76.4123364,cache/manual
+Kerala,Ernakulam,9.9837257,76.2740001,cache/manual
+Kerala,Idukki,9.8154785,76.9991599,cache/manual
+Kerala,Kannur,11.8763836,75.3737973,cache/manual
+Kerala,Kasaragod,12.4221964,75.1904446,cache/manual
+Kerala,Kollam,8.8870533,76.5906696,cache/manual
+Kerala,Kottayam,9.6287383,76.6455326,cache/manual
+Kerala,Kozhikode,11.2450558,75.7754716,cache/manual
+Kerala,Malappuram,11.1065685,76.1101742,cache/manual
+Kerala,Palakkad,10.7873692,76.4742172,cache/manual
+Kerala,Pattanamtitta,9.2648,76.787,cache/manual
+Kerala,Thiruvananthapuram,8.4882267,76.947551,cache/manual
+Kerala,Thrissur,10.5270099,76.214621,cache/manual
+Kerala,Wayanad,11.7151291,76.1271185,cache/manual
+Madhya Pradesh,Anuppur,23.0346179,81.7510255,cache/manual
+Madhya Pradesh,Ashoknagar,24.6186095,77.8786983,cache/manual
+Madhya Pradesh,Balaghat,21.8106,80.181,cache/manual
+Madhya Pradesh,Barwani,21.7514248,74.8915957,cache/manual
+Madhya Pradesh,Betul,21.8797472,77.8753651,cache/manual
+Madhya Pradesh,Bhind,26.5587,78.7873,cache/manual
+Madhya Pradesh,Bhopal,23.2599,77.4126,cache/manual
+Madhya Pradesh,Burhanpur,21.334867,76.3708803,cache/manual
+Madhya Pradesh,Chhatarpur,24.7606089,79.6781776,cache/manual
+Madhya Pradesh,Chhindwara,22.2071897,78.798833,cache/manual
+Madhya Pradesh,Damoh,23.7981005,79.5419356,cache/manual
+Madhya Pradesh,Datia,25.9182947,78.6644962,cache/manual
+Madhya Pradesh,Dewas,22.8057498,76.2940408,cache/manual
+Madhya Pradesh,Dhar,22.5786572,75.2258637,cache/manual
+Madhya Pradesh,Dindori,22.9070871,80.8846924,cache/manual
+Madhya Pradesh,Guna,24.5001772,77.2600959,cache/manual
+Madhya Pradesh,Gwalior,26.2183,78.1828,cache/manual
+Madhya Pradesh,Harda,22.2427973,77.1179173,cache/manual
+Madhya Pradesh,Indore,22.7196,75.8577,cache/manual
+Madhya Pradesh,Jabalpur,23.1815,79.9864,cache/manual
+Madhya Pradesh,Jhabua,22.8869652,74.7243249,cache/manual
+Madhya Pradesh,Katni,23.7176393,80.2610181,cache/manual
+Madhya Pradesh,Khandwa,21.9769779,76.5675344,cache/manual
+Madhya Pradesh,Khargone,21.9544729,75.7521248,cache/manual
+Madhya Pradesh,Mandla,22.6871074,80.5816341,cache/manual
+Madhya Pradesh,Mandsaur,24.2628148,75.385692,cache/manual
+Madhya Pradesh,Morena,26.3849794,77.8612721,cache/manual
+Madhya Pradesh,Narmadapuram,22.6002833,77.9269848,cache/manual
+Madhya Pradesh,Narsinghpur,22.934556,79.0867849,cache/manual
+Madhya Pradesh,Neemuch,24.6305517,75.1829,cache/manual
+Madhya Pradesh,Panna,24.4498931,80.1462723,cache/manual
+Madhya Pradesh,Raisen,23.2675909,78.1727134,cache/manual
+Madhya Pradesh,Rajgarh,23.8716707,76.7744703,cache/manual
+Madhya Pradesh,Ratlam,23.50222,74.9551534,cache/manual
+Madhya Pradesh,Rewa,24.7560846,81.3810574,cache/manual
+Madhya Pradesh,Sagar,23.8083076,78.758254,cache/manual
+Madhya Pradesh,Satna,24.6954445,80.7770348,cache/manual
+Madhya Pradesh,Sehore,23.1150041,77.0665356,cache/manual
+Madhya Pradesh,Seoni,22.2748109,79.7202522,cache/manual
+Madhya Pradesh,Shahdol,23.3002343,81.364771,cache/manual
+Madhya Pradesh,Shajapur,23.4171002,76.6074794,cache/manual
+Madhya Pradesh,Sheopur,25.7499267,76.9212945,cache/manual
+Madhya Pradesh,Shivpuri,25.3741215,77.8278866,cache/manual
+Madhya Pradesh,Sidhi,24.2112687,81.7000415,cache/manual
+Madhya Pradesh,Tikamgarh,24.7437,78.8308,cache/manual
+Madhya Pradesh,Ujjain,23.1885131,75.7716562,cache/manual
+Madhya Pradesh,Umaria,23.6431837,80.9419078,cache/manual
+Madhya Pradesh,Vidisha,23.8463004,77.8370209,cache/manual
+Maharashtra,Ahilyanagar,19.092952,74.7493451,cache/manual
+Maharashtra,Akola,20.7618122,77.1921157,cache/manual
+Maharashtra,Amravati,21.1545412,77.6442962,cache/manual
+Maharashtra,Beed,18.9918442,75.909784,cache/manual
+Maharashtra,Bhandara,21.1225869,79.794509,cache/manual
+Maharashtra,Buldhana,20.562845,76.4086986,cache/manual
+Maharashtra,Chandrapur,20.0967555,79.5045475,cache/manual
+Maharashtra,Chhatrapati Sambhajinagar,19.877263,75.3390241,cache/manual
+Maharashtra,Dharashiv,18.169844,76.1179632,cache/manual
+Maharashtra,Dhule,21.1305215,74.4900614,cache/manual
+Maharashtra,Gadchiroli,19.7590704,80.1622807,cache/manual
+Maharashtra,Gondia,21.455228,80.1962729,cache/manual
+Maharashtra,Hingoli,19.5431163,77.1739432,cache/manual
+Maharashtra,Jalgaon,20.8428827,75.5261246,cache/manual
+Maharashtra,Jalna,19.918833,75.8708599,cache/manual
+Maharashtra,Kolhapur,16.7028412,74.2405329,cache/manual
+Maharashtra,Latur,18.3553347,76.7548997,cache/manual
+Maharashtra,Mumbai,19.076,72.8777,cache/manual
+Maharashtra,Nagpur,21.1498134,79.0820556,cache/manual
+Maharashtra,Nanded,19.0942729,77.4832628,cache/manual
+Maharashtra,Nandurbar,21.5141622,74.5405513,cache/manual
+Maharashtra,Nashik,19.9975,73.7898,cache/manual
+Maharashtra,Parbhani,19.2901981,76.6026443,cache/manual
+Maharashtra,Pune,18.5204,73.8567,cache/manual
+Maharashtra,Raigarh,18.9818971,73.1141545,cache/manual
+Maharashtra,Ratnagiri,17.2826079,73.4569787,cache/manual
+Maharashtra,Sangli,17.1726928,74.5867654,cache/manual
+Maharashtra,Satara,17.6361289,74.2982781,cache/manual
+Maharashtra,Sindhudurg,16.1357193,73.6522086,cache/manual
+Maharashtra,Solapur,17.8499067,75.2763203,cache/manual
+Maharashtra,Thane,19.3653598,73.3685437,cache/manual
+Maharashtra,Wardha,20.8256231,78.6131455,cache/manual
+Maharashtra,Washim,20.2874178,77.2369655,cache/manual
+Maharashtra,Yavatmal,20.0638677,78.3565663,cache/manual
+Manipur,Bishnupur,24.6267287,93.7600454,cache/manual
+Manipur,Chandel,24.3312009,94.0011081,cache/manual
+Manipur,Churachandpur,24.3468839,93.6994143,cache/manual
+Manipur,East Imphal,24.8066181,93.9346851,cache/manual
+Manipur,Senapati,25.3933697,94.1501773,cache/manual
+Manipur,Tamenglong,24.9858596,93.5039967,cache/manual
+Manipur,Thoubal,24.6386954,93.996871,cache/manual
+Manipur,Ukhrul,25.0978641,94.3610713,cache/manual
+Manipur,West Imphal,24.8049259,93.9348265,cache/manual
+Meghalaya,East Garo Hills,25.6184946,90.6342162,cache/manual
+Meghalaya,East Khasi Hills,25.4023736,91.8317178,cache/manual
+Meghalaya,Jaintia Hills,25.5,92.25,cache/manual
+Meghalaya,Ri-Bhoi,25.8764026,91.8567574,cache/manual
+Meghalaya,South Garo Hills,25.347969,90.5657773,cache/manual
+Meghalaya,West Garo Hills,25.6065343,90.2038335,cache/manual
+Meghalaya,West Khasi Hills,25.5814429,91.0851094,cache/manual
+Mizoram,Aizawl,23.7271,92.7176,cache/manual
+Mizoram,Champhai,23.4656,93.3281,cache/manual
+Mizoram,Kolasib,24.1905469,92.7136595,cache/manual
+Mizoram,Lawngtlai,22.3913377,92.7397189,cache/manual
+Mizoram,Lunglei,22.9519972,92.6336207,cache/manual
+Mizoram,Mamit,23.7564387,92.4515374,cache/manual
+Mizoram,Saiha,22.2876724,93.01336,cache/manual
+Mizoram,Serchhip,23.3052514,92.8455124,cache/manual
+Nagaland,Dimapur,25.9041378,93.7177609,cache/manual
+Nagaland,Kohima,25.6751,94.1086,cache/manual
+Nagaland,Mokokchung,26.4795861,94.5105275,cache/manual
+Nagaland,Mon,26.666667,95.0,cache/manual
+Nagaland,Phek,25.6700924,94.3843925,cache/manual
+Nagaland,Tuensang,26.2342107,94.741553,cache/manual
+Nagaland,Wokha,26.242251,94.1921153,cache/manual
+Nagaland,Zunheboto,26.0123803,94.5123719,cache/manual
+Odisha,Angul,21.102538,84.9536825,cache/manual
+Odisha,Balangir,20.6095183,83.1673029,cache/manual
+Odisha,Balasore,21.5006421,86.919884,cache/manual
+Odisha,Bargarh,21.2319922,83.5652737,cache/manual
+Odisha,Bhadrak,20.9854052,86.5934226,cache/manual
+Odisha,Boudh,20.6407463,83.9969704,cache/manual
+Odisha,Cuttack,20.4686,85.8792,cache/manual
+Odisha,Debagarh,21.4477962,84.7174204,cache/manual
+Odisha,Dhenkanal,20.8351494,85.6022305,cache/manual
+Odisha,Gajapati,19.1966026,84.1930634,cache/manual
+Odisha,Ganjam,19.6090068,84.7080633,cache/manual
+Odisha,Jagatsinghpur,20.2593872,86.1660878,cache/manual
+Odisha,Jajpur,20.8746788,86.1215393,cache/manual
+Odisha,Jharsuguda,21.8019368,83.9713964,cache/manual
+Odisha,Kalahandi,19.8265757,83.0408702,cache/manual
+Odisha,Kandhamal,20.1306939,84.0790476,cache/manual
+Odisha,Kendrapara,20.5475164,86.5296168,cache/manual
+Odisha,Kendujhar,21.5892323,85.6687841,cache/manual
+Odisha,Khordha,20.0538149,85.5023308,cache/manual
+Odisha,Koraput,18.7232023,82.6100596,cache/manual
+Odisha,Malkangiri,18.2744685,81.9520316,cache/manual
+Odisha,Mayurbhanj,21.9156338,86.3961824,cache/manual
+Odisha,Nabarangpur,19.228896,82.5665715,cache/manual
+Odisha,Nayagarh,20.2393682,85.050728,cache/manual
+Odisha,Nuapada,20.5412657,82.5292352,cache/manual
+Odisha,Puri,19.8076083,85.8252538,cache/manual
+Odisha,Rayagada,19.4426698,83.5873053,cache/manual
+Odisha,Sambalpur,21.5570606,84.1528515,cache/manual
+Odisha,Subarnapur,20.8535784,83.8529159,cache/manual
+Odisha,Sundargarh,22.0605153,83.9359154,cache/manual
+Puducherry,Karaikal,10.91571,79.8375761,cache/manual
+Puducherry,Mahe,11.7021978,75.5364701,cache/manual
+Punjab,Amritsar,31.6356659,74.8787496,cache/manual
+Punjab,Bathinda,30.1794814,75.0471098,cache/manual
+Punjab,Faridkot,30.6014507,74.7950176,cache/manual
+Punjab,Fatehgarh Sahib,30.6634042,76.3803,cache/manual
+Punjab,Firozpur,30.8753832,74.6525438,cache/manual
+Punjab,Gurdaspur,31.9037264,75.2275587,cache/manual
+Punjab,Hoshiarpur,31.6092942,75.8459754,cache/manual
+Punjab,Jalandhar,31.2922312,75.5678878,cache/manual
+Punjab,Kapurthala,31.3856476,75.3053304,cache/manual
+Punjab,Ludhiana,30.9090157,75.851601,cache/manual
+Punjab,Mansa,29.8764133,75.4889564,cache/manual
+Punjab,Moga,30.7877554,75.159359,cache/manual
+Punjab,Muktsar,30.4692,74.5182,cache/manual
+Punjab,Patiala,30.2092778,76.3397231,cache/manual
+Punjab,Rupnagar,31.0917102,76.5289701,cache/manual
+Punjab,Sangrur,30.135717,75.8533326,cache/manual
+Punjab,Shaheed Bhagat Singh Nagar,31.125,76.116,cache/manual
+Rajasthan,Ajmer,26.4499,74.6399,cache/manual
+Rajasthan,Alwar,27.553,76.6346,cache/manual
+Rajasthan,Banswara,23.4915047,74.3502172,cache/manual
+Rajasthan,Baran,24.9208165,76.6821985,cache/manual
+Rajasthan,Barmer,25.5814853,71.1924922,cache/manual
+Rajasthan,Bharatpur,27.2152,77.503,cache/manual
+Rajasthan,Bhilwara,25.470994,74.6961316,cache/manual
+Rajasthan,Bikaner,28.0159286,73.3171367,cache/manual
+Rajasthan,Bundi,25.4367659,75.7361471,cache/manual
+Rajasthan,Chittorgarh,24.7171578,74.4718129,cache/manual
+Rajasthan,Churu,28.2047781,74.6912996,cache/manual
+Rajasthan,Dausa,26.8048659,76.4437457,cache/manual
+Rajasthan,Dhaulpur,26.7025,77.8934,cache/manual
+Rajasthan,Dungarpur,23.8538893,73.7087177,cache/manual
+Rajasthan,Hanumangarh,29.3659533,74.298429,cache/manual
+Rajasthan,Jaipur,26.9124,75.7873,cache/manual
+Rajasthan,Jaisalmer,27.0264162,70.777512,cache/manual
+Rajasthan,Jalore,25.2093482,72.3178889,cache/manual
+Rajasthan,Jhalawar,24.3132368,76.5221078,cache/manual
+Rajasthan,Jhunjhunu,28.0798944,75.5424211,cache/manual
+Rajasthan,Jodhpur,26.2389,73.0243,cache/manual
+Rajasthan,Karauli,26.4947,77.0169,cache/manual
+Rajasthan,Kota,25.2138,75.8648,cache/manual
+Rajasthan,Nagaur,26.9873443,73.7389011,cache/manual
+Rajasthan,Pali,25.4552211,73.419389,cache/manual
+Rajasthan,Rajsamand,25.2892459,73.8241077,cache/manual
+Rajasthan,Sawai Madhopur,26.2290186,76.3043561,cache/manual
+Rajasthan,Sikar,27.6624156,75.0279971,cache/manual
+Rajasthan,Sirohi,24.8114047,72.8300257,cache/manual
+Rajasthan,Sri Ganganagar,29.4605539,73.5850528,cache/manual
+Rajasthan,Tonk,26.1223198,75.6632235,cache/manual
+Rajasthan,Udaipur,24.5854,73.7125,cache/manual
+Sikkim,East,27.33,88.62,cache/manual
+Sikkim,North Sikkim,27.9,88.6,cache/manual
+Sikkim,South Sikkim,27.17,88.56,cache/manual
+Sikkim,West Sikkim,27.3,88.23,cache/manual
+Tamil Nadu,Ariyalur,11.1530559,79.2585797,cache/manual
+Tamil Nadu,Chennai,13.0836939,80.270186,cache/manual
+Tamil Nadu,Coimbatore,11.0018115,76.9628425,cache/manual
+Tamil Nadu,Cuddalore,11.5202071,79.3396356,cache/manual
+Tamil Nadu,Dharmapuri,12.1456131,78.1132217,cache/manual
+Tamil Nadu,Dindigul,10.4257161,77.8154728,cache/manual
+Tamil Nadu,Erode,11.4905282,77.3505274,cache/manual
+Tamil Nadu,Kanchipuram,12.9647163,79.9839686,cache/manual
+Tamil Nadu,Kanyakumari,8.079252,77.5499338,cache/manual
+Tamil Nadu,Karur,10.8217671,78.3828654,cache/manual
+Tamil Nadu,Madurai,9.9261153,78.1140983,cache/manual
+Tamil Nadu,Nagapattinam,10.6026203,79.7619348,cache/manual
+Tamil Nadu,Namakkal,11.3033889,78.118604,cache/manual
+Tamil Nadu,Perambalur,11.2902641,78.9300404,cache/manual
+Tamil Nadu,Pudukkottai,10.2903072,78.8173617,cache/manual
+Tamil Nadu,Ramanathapuram,9.5205576,78.5184635,cache/manual
+Tamil Nadu,Salem,11.6469616,78.2106958,cache/manual
+Tamil Nadu,Sivaganga,9.8486881,78.4870461,cache/manual
+Tamil Nadu,Thanjavur,10.659037,79.2014278,cache/manual
+Tamil Nadu,The Nilgiris,11.4,76.7,cache/manual
+Tamil Nadu,Theni,9.8692558,77.4222974,cache/manual
+Tamil Nadu,Thiruvallur,13.2537619,80.0562572,cache/manual
+Tamil Nadu,Thiruvarur,10.6878621,79.4979437,cache/manual
+Tamil Nadu,Thoothukudi,8.8457035,77.9938178,cache/manual
+Tamil Nadu,Tiruchchirappalli,10.8067917,78.7039861,cache/manual
+Tamil Nadu,Tirunelveli,8.7139,77.7567,cache/manual
+Tamil Nadu,Tiruvannamalai,12.4289282,78.99915,cache/manual
+Tamil Nadu,Vellore,12.9021849,79.061104,cache/manual
+Tamil Nadu,Villupuram,11.9398285,79.4945645,cache/manual
+Tamil Nadu,Virudhunagar,9.4926289,77.8631831,cache/manual
+Tripura,Dhalai,23.8253158,91.9732227,cache/manual
+Tripura,North Tripura,24.0921476,92.2451214,cache/manual
+Tripura,South Tripura,23.1708278,91.638817,cache/manual
+Tripura,West Tripura,23.9153329,91.3879341,cache/manual
+Uttar Pradesh,Agra,27.1767,78.0081,cache/manual
+Uttar Pradesh,Aligarh,27.8761073,78.1358153,cache/manual
+Uttar Pradesh,Ambedkar Nagar,26.4045941,82.6065154,cache/manual
+Uttar Pradesh,Amroha,28.7952632,78.3436244,cache/manual
+Uttar Pradesh,Auraiya,26.6558215,79.5160757,cache/manual
+Uttar Pradesh,Ayodhya,26.7990707,82.2052321,cache/manual
+Uttar Pradesh,Azamgarh,26.0737,83.1859,cache/manual
+Uttar Pradesh,Badaun,28.0649367,79.043832,cache/manual
+Uttar Pradesh,Baghpat,29.0374779,77.3062737,cache/manual
+Uttar Pradesh,Bahraich,27.7343823,81.47654,cache/manual
+Uttar Pradesh,Ballia,25.8749595,84.1210329,cache/manual
+Uttar Pradesh,Balrampur,27.4476988,82.3956245,cache/manual
+Uttar Pradesh,Banda,25.4438537,80.5595237,cache/manual
+Uttar Pradesh,Barabanki,26.9421406,81.3856087,cache/manual
+Uttar Pradesh,Bareilly,28.4582345,79.4047452,cache/manual
+Uttar Pradesh,Basti,26.8387083,82.5350919,cache/manual
+Uttar Pradesh,Bhadohi,25.424304,82.4883923,cache/manual
+Uttar Pradesh,Bijnor,29.4074203,78.4821406,cache/manual
+Uttar Pradesh,Bulandshahr,28.3874073,77.9743805,cache/manual
+Uttar Pradesh,Chandauli,25.125695,83.2494601,cache/manual
+Uttar Pradesh,Chitrakoot,25.217139,81.1045927,cache/manual
+Uttar Pradesh,Deoria,26.4239911,83.7638578,cache/manual
+Uttar Pradesh,Etah,27.5550357,78.5992221,cache/manual
+Uttar Pradesh,Etawah,26.7155629,79.0917098,cache/manual
+Uttar Pradesh,Farrukhabad,27.4362003,79.4894778,cache/manual
+Uttar Pradesh,Fatehpur,25.8348023,80.9154547,cache/manual
+Uttar Pradesh,Firozabad,27.1941954,78.4604956,cache/manual
+Uttar Pradesh,Gautam Buddha Nagar,28.368716,77.5970121,cache/manual
+Uttar Pradesh,Ghaziabad,28.7749966,77.4586967,cache/manual
+Uttar Pradesh,Ghazipur,25.6034863,83.5075888,cache/manual
+Uttar Pradesh,Gonda,27.1103723,81.9238906,cache/manual
+Uttar Pradesh,Gorakhpur,26.7606,83.3732,cache/manual
+Uttar Pradesh,Hamirpur,25.75,80.0,cache/manual
+Uttar Pradesh,Hardoi,27.3369978,80.0998232,cache/manual
+Uttar Pradesh,Hathras,27.5724324,78.1116209,cache/manual
+Uttar Pradesh,Jalaun,26.1048633,79.3919136,cache/manual
+Uttar Pradesh,Jaunpur,25.7967065,82.4888992,cache/manual
+Uttar Pradesh,Jhansi,25.529855,78.6527802,cache/manual
+Uttar Pradesh,Kannauj,26.9986675,79.6927946,cache/manual
+Uttar Pradesh,Kanpur,26.4499,80.3319,cache/manual
+Uttar Pradesh,Kanpur Dehat,26.4585639,79.8548052,cache/manual
+Uttar Pradesh,Kaushambi,25.5342456,81.4493567,cache/manual
+Uttar Pradesh,Kushinagar,26.7438272,83.9162322,cache/manual
+Uttar Pradesh,Lakhimpur Kheri,28.1834229,80.7131272,cache/manual
+Uttar Pradesh,Lalitpur,24.6999688,78.51862,cache/manual
+Uttar Pradesh,Lucknow,26.8467,80.9462,cache/manual
+Uttar Pradesh,Maharajganj,26.4710847,81.1807046,cache/manual
+Uttar Pradesh,Mahoba,25.3615938,79.706011,cache/manual
+Uttar Pradesh,Mainpuri,27.2093072,79.0625369,cache/manual
+Uttar Pradesh,Mathura,27.4955539,77.6855554,cache/manual
+Uttar Pradesh,Mau,26.0390905,83.4985846,cache/manual
+Uttar Pradesh,Meerut,29.0018557,77.7679671,cache/manual
+Uttar Pradesh,Mirzapur,24.9316896,82.6280163,cache/manual
+Uttar Pradesh,Moradabad,28.8796553,78.8095335,cache/manual
+Uttar Pradesh,Muzaffarnagar,29.4496979,77.7429333,cache/manual
+Uttar Pradesh,Pilibhit,28.4947158,80.1076122,cache/manual
+Uttar Pradesh,Pratapgarh,25.75,81.75,cache/manual
+Uttar Pradesh,Prayagraj,25.4358,81.8463,cache/manual
+Uttar Pradesh,Rae Bareli,26.25,81.25,cache/manual
+Uttar Pradesh,Rampur,28.7934728,79.1845806,cache/manual
+Uttar Pradesh,Saharanpur,29.9856799,77.5040646,cache/manual
+Uttar Pradesh,Sant Kabir Nagar,26.755082,83.0398545,cache/manual
+Uttar Pradesh,Shahjahanpur,27.9128583,79.7476254,cache/manual
+Uttar Pradesh,Shravasti,27.5083429,82.0263569,cache/manual
+Uttar Pradesh,Siddharthnagar,27.2511724,82.8716528,cache/manual
+Uttar Pradesh,Sitapur,27.5026748,80.8335139,cache/manual
+Uttar Pradesh,Sonbhadra,24.4148159,83.0637517,cache/manual
+Uttar Pradesh,Sultanpur,26.2604732,82.2380532,cache/manual
+Uttar Pradesh,Unnao,26.5673264,80.6198193,cache/manual
+Uttar Pradesh,Varanasi,25.3176,82.9739,cache/manual
+Uttarakhand,Almora,29.702651,79.4326318,cache/manual
+Uttarakhand,Bageshwar,30.0087902,79.9280183,cache/manual
+Uttarakhand,Chamoli,30.4985956,79.6190537,cache/manual
+Uttarakhand,Champawat,29.235032,80.1023068,cache/manual
+Uttarakhand,Dehradun,30.3255646,78.0436813,cache/manual
+Uttarakhand,Haridwar,29.9384473,78.1452985,cache/manual
+Uttarakhand,Nainital,29.294995,79.4162511,cache/manual
+Uttarakhand,Pauri Garhwal,29.8473168,78.7070479,cache/manual
+Uttarakhand,Pithoragarh,29.585871,80.215167,cache/manual
+Uttarakhand,Rudraprayag,30.4915835,79.0366067,cache/manual
+Uttarakhand,Tehri Garhwal,30.4658181,78.4837349,cache/manual
+Uttarakhand,Udham Singh Nagar,29.0478314,79.4326164,cache/manual
+Uttarakhand,Uttarkashi,30.9635733,78.6362521,cache/manual
+West Bengal,Bankura,23.132377,87.2081925,cache/manual
+West Bengal,Birbhum,24.0621532,87.6982823,cache/manual
+West Bengal,Cooch Behar,26.2559197,89.4201143,cache/manual
+West Bengal,Dakshin Dinajpur,25.385807,88.5063362,cache/manual
+West Bengal,Darjeeling,27.0377554,88.263176,cache/manual
+West Bengal,East Midnapore,22.0521107,88.0712466,cache/manual
+West Bengal,Hooghly,22.9099402,88.0120825,cache/manual
+West Bengal,Howrah,22.5736296,88.3251045,cache/manual
+West Bengal,Jalpaiguri,26.6262805,88.7334485,cache/manual
+West Bengal,Kolkata,22.5726,88.3639,cache/manual
+West Bengal,Malda,25.0057449,88.1398483,cache/manual
+West Bengal,Murshidabad,24.1745993,88.2721335,cache/manual
+West Bengal,Nadia,23.47,88.5565,cache/manual
+West Bengal,North 24 Parganas,22.6167,88.4,cache/manual
+West Bengal,Purba Bardhaman,23.388517,87.9068097,cache/manual
+West Bengal,Puruliya,23.333333,86.416667,cache/manual
+West Bengal,South 24 Parganas,22.1776733,88.5307853,cache/manual
+West Bengal,Uttar Dinajpur,25.8721428,87.961986,cache/manual
+West Bengal,West Midnapore,22.4188528,87.307174,cache/manual
