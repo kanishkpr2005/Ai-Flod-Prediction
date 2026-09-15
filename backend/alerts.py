@@ -5,13 +5,64 @@ from pydantic import BaseModel
 
 try:
     from .database import SessionLocal
-    from .models import Alert
+    from .models import Alert, Notification, UserDB
 except ImportError:
     from database import SessionLocal
-    from models import Alert
+    from models import Alert, Notification, UserDB
 
 
 router = APIRouter()
+
+
+def create_area_notifications(
+    db,
+    district,
+    state,
+    risk_level,
+    probability_percent,
+    alert_id=None,
+):
+    if risk_level not in {"HIGH", "CRITICAL"}:
+        return 0
+
+    area = f"{district}, {state}"
+    title = f"{risk_level} flood risk in {district}"
+    message = (
+        f"Automatic flood warning for {area}. "
+        f"Estimated flood probability: {probability_percent:.1f}%. "
+        "Please follow local authority instructions and prepare for evacuation."
+    )
+    recipients = db.query(UserDB).filter(
+        (UserDB.role.ilike("authority")) |
+        (UserDB.area.ilike(f"%{district}%"))
+    ).all()
+
+    created = 0
+    for user in recipients:
+        duplicate = db.query(Notification).filter(
+            Notification.recipient_user_id == user.id,
+            Notification.area == area,
+            Notification.severity == risk_level,
+            Notification.read == 0,
+            Notification.expires_at > datetime.utcnow(),
+        ).first()
+        if duplicate:
+            continue
+
+        db.add(Notification(
+            recipient_user_id=user.id,
+            recipient_role=(user.role or "user").lower(),
+            title=title,
+            message=message,
+            area=area,
+            severity=risk_level,
+            expires_at=datetime.utcnow() + timedelta(hours=6),
+        ))
+        created += 1
+
+    if created:
+        db.commit()
+    return created
 
 
 # ============================================================
@@ -252,6 +303,14 @@ def create_automatic_flood_alert(
 
             db.commit()
             db.refresh(existing)
+            create_area_notifications(
+                db,
+                district,
+                state,
+                risk_level,
+                probability_percent,
+                existing.id,
+            )
 
             return {
                 "created": False,
@@ -282,6 +341,14 @@ def create_automatic_flood_alert(
         db.add(alert)
         db.commit()
         db.refresh(alert)
+        create_area_notifications(
+            db,
+            district,
+            state,
+            risk_level,
+            probability_percent,
+            alert.id,
+        )
 
         print(
             f"🚨 ALERT CREATED: "

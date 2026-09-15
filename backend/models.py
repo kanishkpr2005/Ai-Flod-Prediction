@@ -379,3 +379,24 @@ class UserDB(Base):
         String,
         default="user",
     )
+
+    area = Column(
+        String,
+        nullable=True,
+        index=True,
+    )
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    recipient_user_id = Column(Integer, nullable=True, index=True)
+    recipient_role = Column(String, nullable=False, index=True)
+    title = Column(String, nullable=False)
+    message = Column(Text, nullable=False)
+    area = Column(String, nullable=False, index=True)
+    severity = Column(String, nullable=False, index=True)
+    read = Column(Integer, default=0, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    expires_at = Column(DateTime, nullable=True)

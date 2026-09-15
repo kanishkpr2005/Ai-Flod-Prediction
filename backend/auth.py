@@ -92,6 +92,7 @@ class RegisterRequest(BaseModel):
     email: str
     password: str
     role: str = "user"
+    area: str | None = None
 
 
 class LoginRequest(BaseModel):
@@ -146,6 +147,7 @@ def register_user(
         email=email,
         password_hash=hash_password(user.password),
         role=role,
+            area=(user.area or "").strip() or None,
     )
 
     db.add(new_user)
@@ -160,6 +162,7 @@ def register_user(
             "name": new_user.name,
             "email": new_user.email,
             "role": new_user.role,
+            "area": new_user.area,
         },
     }
 
@@ -212,5 +215,6 @@ def login_user(
             "name": user.name,
             "email": user.email,
             "role": user.role.upper(),
+            "area": user.area,
         },
     }

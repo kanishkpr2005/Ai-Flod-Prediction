@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 import os
 import pickle
+from datetime import datetime
 
 import pandas as pd
 
@@ -9,10 +10,11 @@ from pydantic import BaseModel
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 try:
     from .database import engine, get_db
-    from .models import Base, Disaster
+    from .models import Base, Disaster, Notification
     from .auth import router as auth_router
     from .reports import router as reports_router
     from .dashboard import router as dashboard_router
@@ -27,7 +29,7 @@ try:
     from .monitor_runner import start_background_monitor
 except ImportError:
     from database import engine, get_db
-    from models import Base, Disaster
+    from models import Base, Disaster, Notification
     from auth import router as auth_router
     from reports import router as reports_router
     from dashboard import router as dashboard_router
@@ -99,6 +101,14 @@ except Exception as error:
 Base.metadata.create_all(
     bind=engine
 )
+
+with engine.begin() as connection:
+    user_columns = {
+        row[1]
+        for row in connection.execute(text("PRAGMA table_info(users)"))
+    }
+    if "area" not in user_columns:
+        connection.execute(text("ALTER TABLE users ADD COLUMN area VARCHAR"))
 
 
 # ============================================================
@@ -227,6 +237,75 @@ app.include_router(
 app.include_router(
     alerts_router,
 )
+
+
+@app.get("/notifications")
+def get_notifications(
+    user_id: int | None = None,
+    role: str = "user",
+    db: Session = Depends(get_db),
+):
+    query = db.query(Notification).filter(
+        Notification.expires_at > datetime.utcnow()
+    )
+    if role.lower() == "authority":
+        query = query.filter(Notification.recipient_role == "authority")
+    elif user_id is not None:
+        query = query.filter(Notification.recipient_user_id == user_id)
+    else:
+        return {"notifications": [], "unread": 0}
+
+    notifications = query.order_by(Notification.created_at.desc()).limit(50).all()
+    return {
+        "notifications": [
+            {
+                "id": item.id,
+                "title": item.title,
+                "message": item.message,
+                "area": item.area,
+                "severity": item.severity,
+                "read": bool(item.read),
+                "created_at": item.created_at,
+            }
+            for item in notifications
+        ],
+        "unread": sum(1 for item in notifications if not item.read),
+    }
+
+
+@app.patch("/notifications/{notification_id}/read")
+def mark_notification_read(
+    notification_id: int,
+    db: Session = Depends(get_db),
+):
+    notification = db.query(Notification).filter(
+        Notification.id == notification_id
+    ).first()
+    if not notification:
+        return {"success": False, "message": "Notification not found"}
+    notification.read = 1
+    db.commit()
+    return {"success": True}
+
+
+@app.get("/disasters")
+def get_disasters(db: Session = Depends(get_db)):
+    disasters = db.query(Disaster).order_by(Disaster.created_at.desc()).all()
+    return {
+        "disasters": [
+            {
+                "id": disaster.id,
+                "disaster_type": disaster.disaster_type,
+                "location": disaster.location,
+                "severity": disaster.severity,
+                "latitude": disaster.latitude,
+                "longitude": disaster.longitude,
+                "description": disaster.description,
+                "created_at": disaster.created_at,
+            }
+            for disaster in disasters
+        ]
+    }
 
 app.include_router(
     sos_router,

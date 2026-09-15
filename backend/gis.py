@@ -68,42 +68,56 @@ def district_prediction_rows():
 
 @router.get("/environment")
 def environment_data(latitude: float, longitude: float):
-    weather = requests.get(
-        WEATHER_API,
-        params={
-            "latitude": latitude,
-            "longitude": longitude,
-            "current": "temperature_2m,precipitation,rain,wind_speed_10m",
-            "daily": "precipitation_sum,rain_sum",
-            "forecast_days": 3,
-            "timezone": "auto",
-        },
-        timeout=15,
-    )
-    flood = requests.get(
-        FLOOD_API,
-        params={
-            "latitude": latitude,
-            "longitude": longitude,
-            "daily": "river_discharge",
-            "forecast_days": 3,
-            "timezone": "auto",
-        },
-        timeout=15,
-    )
-    elevation = requests.get(
-        ELEVATION_API,
-        params={"latitude": latitude, "longitude": longitude},
-        timeout=15,
-    )
+    weather_data = {}
+    flood_data = {}
+    elevation_data = {}
 
-    weather.raise_for_status()
-    flood.raise_for_status()
-    elevation.raise_for_status()
+    try:
+        weather = requests.get(
+            WEATHER_API,
+            params={
+                "latitude": latitude,
+                "longitude": longitude,
+                "current": "temperature_2m,precipitation,rain,wind_speed_10m",
+                "daily": "precipitation_sum,rain_sum",
+                "forecast_days": 3,
+                "timezone": "auto",
+            },
+            timeout=15,
+        )
+        weather.raise_for_status()
+        weather_data = weather.json()
+    except requests.RequestException:
+        pass
 
-    weather_data = weather.json()
-    flood_data = flood.json()
-    elevation_data = elevation.json()
+    try:
+        flood = requests.get(
+            FLOOD_API,
+            params={
+                "latitude": latitude,
+                "longitude": longitude,
+                "daily": "river_discharge",
+                "forecast_days": 3,
+                "timezone": "auto",
+            },
+            timeout=15,
+        )
+        flood.raise_for_status()
+        flood_data = flood.json()
+    except requests.RequestException:
+        pass
+
+    try:
+        elevation = requests.get(
+            ELEVATION_API,
+            params={"latitude": latitude, "longitude": longitude},
+            timeout=15,
+        )
+        elevation.raise_for_status()
+        elevation_data = elevation.json()
+    except requests.RequestException:
+        pass
+
     current = weather_data.get("current", {})
     daily = weather_data.get("daily", {})
     discharge = flood_data.get("daily", {}).get("river_discharge", [])
