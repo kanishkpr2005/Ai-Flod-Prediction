@@ -23,3 +23,9 @@ models/**/*.pkl
 .next/
 dist/
 build/
+
+data/raw/rainfall/
+data/satellite/raw/
+data/processed/district_predictions_2024.csv
+data/processed/flood_training_2024.csv
+data/processed/rainfall_features_2024.csv
