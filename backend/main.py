@@ -102,13 +102,14 @@ Base.metadata.create_all(
     bind=engine
 )
 
-with engine.begin() as connection:
-    user_columns = {
-        row[1]
-        for row in connection.execute(text("PRAGMA table_info(users)"))
-    }
-    if "area" not in user_columns:
-        connection.execute(text("ALTER TABLE users ADD COLUMN area VARCHAR"))
+if str(engine.url).startswith("sqlite"):
+    with engine.begin() as connection:
+        user_columns = {
+            row[1]
+            for row in connection.exec_driver_sql("PRAGMA table_info(users)")
+        }
+        if "area" not in user_columns:
+            connection.exec_driver_sql("ALTER TABLE users ADD COLUMN area VARCHAR")
 
 
 # ============================================================
@@ -129,10 +130,15 @@ async def lifespan(app: FastAPI):
             "🚀 Starting automatic weather monitoring..."
         )
 
-        start_background_monitor()
+        monitor_enabled = os.getenv("VERCEL") != "1"
+
+        if monitor_enabled:
+            start_background_monitor()
 
         print(
             "✅ Automatic monitoring started"
+            if monitor_enabled
+            else "ℹ️ Automatic monitoring is disabled on Vercel"
         )
 
         print(
@@ -171,6 +177,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
+configured_frontend_origins = os.getenv("FRONTEND_ORIGINS")
+
+if os.getenv("VERCEL") == "1" and not configured_frontend_origins:
+    raise RuntimeError(
+        "FRONTEND_ORIGINS must contain the deployed frontend origin on Vercel."
+    )
 
 # ============================================================
 # CORS

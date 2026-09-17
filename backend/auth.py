@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 import hashlib
+import os
 
 try:
     from .database import SessionLocal
@@ -80,7 +81,10 @@ def seed_default_authority_account():
         db.close()
 
 
-seed_default_authority_account()
+default_seed_setting = "0" if os.getenv("VERCEL") == "1" else "1"
+
+if os.getenv("SEED_DEFAULT_AUTHORITY", default_seed_setting) == "1":
+    seed_default_authority_account()
 
 
 # ============================================================

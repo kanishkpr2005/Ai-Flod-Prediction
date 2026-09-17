@@ -17,10 +17,14 @@ DATABASE_PATH = os.path.join(
     "disaster.db"
 )
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    f"sqlite:///{DATABASE_PATH}",
-)
+configured_database_url = os.getenv("DATABASE_URL")
+
+if os.getenv("VERCEL") == "1" and not configured_database_url:
+    raise RuntimeError(
+        "DATABASE_URL must point to a hosted PostgreSQL database on Vercel."
+    )
+
+DATABASE_URL = configured_database_url or f"sqlite:///{DATABASE_PATH}"
 
 
 # ============================================================
