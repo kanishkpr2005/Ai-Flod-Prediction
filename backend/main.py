@@ -1,8 +1,17 @@
 from contextlib import asynccontextmanager
 
 import os
+import sys
 import pickle
 from datetime import datetime
+
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 
 import pandas as pd
 

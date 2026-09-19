@@ -1,15 +1,15 @@
 .env
 *.env
 !.env.example
-\.venv/
+.env.local
+*.env.local
+.vercel/
+.venv/
 node_modules/
 .next/
 __pycache__/
 *.py[cod]
 *.db
-*.db
-__pycache__/
-*.py[cod]
 
 # Large data files
 data/raw/**/*.nc4
@@ -19,6 +19,7 @@ data/raw/**/*.zip.part
 *.pkl.gz
 models/**/*.pkl
 *.csv
+!data/processed/live_weather_predictions.csv
 !frontend/
 .next/
 dist/
