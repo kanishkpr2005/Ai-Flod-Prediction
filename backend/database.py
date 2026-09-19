@@ -19,12 +19,23 @@ DATABASE_PATH = os.path.join(
 
 configured_database_url = os.getenv("DATABASE_URL")
 
+if configured_database_url:
+    if configured_database_url.startswith("postgres://"):
+        configured_database_url = configured_database_url.replace(
+            "postgres://", "postgresql+psycopg://", 1
+        )
+    elif configured_database_url.startswith("postgresql://") and not configured_database_url.startswith("postgresql+"):
+        configured_database_url = configured_database_url.replace(
+            "postgresql://", "postgresql+psycopg://", 1
+        )
+
 if os.getenv("VERCEL") == "1" and not configured_database_url:
     raise RuntimeError(
         "DATABASE_URL must point to a hosted PostgreSQL database on Vercel."
     )
 
 DATABASE_URL = configured_database_url or f"sqlite:///{DATABASE_PATH}"
+
 
 
 # ============================================================
