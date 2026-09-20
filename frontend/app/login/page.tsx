@@ -168,7 +168,7 @@ export default function LoginPage() {
       );
 
       setError(
-        "Cannot connect to backend. Make sure FastAPI is running on port 8000."
+        "Cannot connect to the backend server. If using Render free tier, the backend may be waking up (please wait 30 seconds and retry), or verify your NEXT_PUBLIC_API_URL."
       );
     } finally {
       setLoading(false);

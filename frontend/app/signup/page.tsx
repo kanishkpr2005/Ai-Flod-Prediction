@@ -103,7 +103,7 @@ function SignupForm() {
     } catch (err) {
       console.error("Signup error:", err);
       setError(
-        "Cannot connect to backend. Make sure the API server is running."
+        "Cannot connect to the backend server. If using Render free tier, the backend may be waking up (please wait 30 seconds and retry), or verify your NEXT_PUBLIC_API_URL."
       );
     } finally {
       setLoading(false);

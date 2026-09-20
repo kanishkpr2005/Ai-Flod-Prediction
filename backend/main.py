@@ -194,33 +194,27 @@ app = FastAPI(
 )
 
 
-configured_frontend_origins = os.getenv("FRONTEND_ORIGINS")
-
-if os.getenv("VERCEL") == "1" and not configured_frontend_origins:
-    raise RuntimeError(
-        "FRONTEND_ORIGINS must contain the deployed frontend origin on Vercel."
-    )
-
 # ============================================================
 # CORS
 # ============================================================
 
+raw_origins = os.getenv(
+    "FRONTEND_ORIGINS",
+    "http://localhost:3000,http://127.0.0.1:3000",
+)
+
+configured_origins = [
+    origin.strip()
+    for origin in raw_origins.split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-
-    allow_origins=[
-        origin.strip()
-        for origin in os.getenv(
-            "FRONTEND_ORIGINS",
-            "http://localhost:3000,http://127.0.0.1:3000",
-        ).split(",")
-        if origin.strip()
-    ],
-
+    allow_origins=configured_origins if "*" not in configured_origins else ["*"],
+    allow_origin_regex=r"https://.*\.vercel\.app|http://localhost:\d+|http://127\.0\.0\.1:\d+",
     allow_credentials=True,
-
     allow_methods=["*"],
-
     allow_headers=["*"],
 )
 
