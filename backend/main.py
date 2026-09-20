@@ -13,6 +13,13 @@ if hasattr(sys.stdout, "reconfigure"):
         pass
 
 
+BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(BACKEND_DIR)
+if BACKEND_DIR not in sys.path:
+    sys.path.insert(0, BACKEND_DIR)
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
 import pandas as pd
 
 from pydantic import BaseModel
@@ -22,9 +29,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 
 try:
-    from .database import engine, get_db
+    from .database import engine, get_db, init_db
     from .models import Base, Disaster, Notification
-    from .auth import router as auth_router
+    from .auth import router as auth_router, seed_default_authority_account
     from .reports import router as reports_router
     from .dashboard import router as dashboard_router
     from .location import router as location_router
@@ -37,9 +44,9 @@ try:
     from .gis import router as gis_router
     from .monitor_runner import start_background_monitor
 except ImportError:
-    from database import engine, get_db
+    from database import engine, get_db, init_db
     from models import Base, Disaster, Notification
-    from auth import router as auth_router
+    from auth import router as auth_router, seed_default_authority_account
     from reports import router as reports_router
     from dashboard import router as dashboard_router
     from location import router as location_router
@@ -107,18 +114,10 @@ except Exception as error:
 # DATABASE
 # ============================================================
 
-Base.metadata.create_all(
-    bind=engine
-)
-
-if str(engine.url).startswith("sqlite"):
-    with engine.begin() as connection:
-        user_columns = {
-            row[1]
-            for row in connection.exec_driver_sql("PRAGMA table_info(users)")
-        }
-        if "area" not in user_columns:
-            connection.exec_driver_sql("ALTER TABLE users ADD COLUMN area VARCHAR")
+try:
+    init_db()
+except Exception as err:
+    print(f"⚠️ Database initialization error: {err}")
 
 
 # ============================================================
@@ -132,6 +131,14 @@ async def lifespan(app: FastAPI):
     print("=" * 60)
     print("      AI DISASTER RESPONSE PLATFORM")
     print("=" * 60)
+
+    try:
+        init_db()
+        default_seed_setting = "0" if os.getenv("VERCEL") == "1" else "1"
+        if os.getenv("SEED_DEFAULT_AUTHORITY", default_seed_setting) == "1":
+            seed_default_authority_account()
+    except Exception as db_err:
+        print(f"⚠️ DB startup setup failed: {db_err}")
 
     try:
 

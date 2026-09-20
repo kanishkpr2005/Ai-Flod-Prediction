@@ -5,10 +5,10 @@ import hashlib
 import os
 
 try:
-    from .database import SessionLocal
+    from .database import SessionLocal, init_db
     from .models import UserDB
 except ImportError:
-    from database import SessionLocal
+    from database import SessionLocal, init_db
     from models import UserDB
 
 
@@ -46,6 +46,11 @@ def hash_password(password: str) -> str:
 # ============================================================
 
 def seed_default_authority_account():
+    try:
+        init_db()
+    except Exception as init_err:
+        print(f"⚠️ init_db failed in seed_default_authority_account: {init_err}")
+
     db = SessionLocal()
 
     try:
@@ -77,6 +82,8 @@ def seed_default_authority_account():
         db.commit()
         print(f"✅ Default authority account created: {email}")
 
+    except Exception as err:
+        print(f"⚠️ Authority account seeding failed: {err}")
     finally:
         db.close()
 
@@ -84,7 +91,11 @@ def seed_default_authority_account():
 default_seed_setting = "0" if os.getenv("VERCEL") == "1" else "1"
 
 if os.getenv("SEED_DEFAULT_AUTHORITY", default_seed_setting) == "1":
-    seed_default_authority_account()
+    try:
+        seed_default_authority_account()
+    except Exception as e:
+        print(f"⚠️ Auto-seeding skipped during import: {e}")
+
 
 
 # ============================================================

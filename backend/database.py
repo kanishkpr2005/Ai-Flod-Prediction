@@ -55,26 +55,6 @@ engine = create_engine(
 )
 
 
-if DATABASE_URL.startswith("sqlite"):
-    with engine.begin() as connection:
-        tables = {
-            row[0]
-            for row in connection.exec_driver_sql(
-                "SELECT name FROM sqlite_master WHERE type='table'"
-            )
-        }
-        if "users" in tables:
-            user_columns = {
-                row[1]
-                for row in connection.exec_driver_sql(
-                    "PRAGMA table_info(users)"
-                )
-            }
-            if "area" not in user_columns:
-                connection.exec_driver_sql(
-                    "ALTER TABLE users ADD COLUMN area VARCHAR"
-                )
-
 
 # ============================================================
 # SESSION
@@ -92,6 +72,43 @@ SessionLocal = sessionmaker(
 # ============================================================
 
 Base = declarative_base()
+
+
+# ============================================================
+# INITIALIZE DATABASE
+# ============================================================
+
+def init_db():
+    try:
+        try:
+            from .models import Base as ModelsBase
+        except ImportError:
+            from models import Base as ModelsBase
+        
+        ModelsBase.metadata.create_all(bind=engine)
+        
+        if DATABASE_URL.startswith("sqlite"):
+            with engine.begin() as connection:
+                tables = {
+                    row[0]
+                    for row in connection.exec_driver_sql(
+                        "SELECT name FROM sqlite_master WHERE type='table'"
+                    )
+                }
+                if "users" in tables:
+                    user_columns = {
+                        row[1]
+                        for row in connection.exec_driver_sql(
+                            "PRAGMA table_info(users)"
+                        )
+                    }
+                    if "area" not in user_columns:
+                        connection.exec_driver_sql(
+                            "ALTER TABLE users ADD COLUMN area VARCHAR"
+                        )
+    except Exception as e:
+        print(f"⚠️ init_db notice: {e}")
+
 
 
 # ============================================================
