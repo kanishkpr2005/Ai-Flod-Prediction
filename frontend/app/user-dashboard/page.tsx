@@ -1085,7 +1085,7 @@ export default function UserDashboard() {
             </h1>
 
             <p className="text-xs text-slate-400 sm:text-sm">
-              AI Disaster Management System
+              Rakshak Ai
             </p>
           </div>
 
@@ -2255,7 +2255,7 @@ export default function UserDashboard() {
       <footer className="mt-10 border-t border-slate-800 bg-slate-900">
 
         <div className="mx-auto max-w-7xl px-6 py-5 text-center text-xs text-slate-500">
-          AI Disaster Management System •
+          Rakshak Ai •
           Emergency SOS •
           Live Disaster Monitoring •
           AI Response Platform

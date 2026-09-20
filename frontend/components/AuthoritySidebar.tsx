@@ -33,7 +33,7 @@ export default function AuthoritySidebar() {
 
             <div>
               <h1 className="font-bold text-white">
-                Disaster AI
+                Rakshak Ai
               </h1>
 
               <p className="text-xs text-slate-500">

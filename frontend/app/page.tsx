@@ -32,7 +32,7 @@ export default function Home() {
 
             <div>
               <h1 className="text-lg font-bold">
-                AI Disaster Management
+                Rakshak Ai
               </h1>
 
               <p className="text-[10px] uppercase tracking-[0.2em] text-blue-400">
@@ -476,7 +476,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-8 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
 
           <p>
-            © 2026 AI Disaster Management System
+            © 2026 Rakshak Ai
           </p>
 
           <p>

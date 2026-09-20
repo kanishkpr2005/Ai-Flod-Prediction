@@ -445,7 +445,7 @@ export default function AuthorityDashboard() {
                 </h1>
 
                 <p className="text-xs text-slate-400">
-                  AI Disaster Monitoring & Emergency Response
+                  Rakshak Ai • Monitoring & Emergency Response
                 </p>
               </div>
             </div>

@@ -205,7 +205,7 @@ export default function LoginPage() {
             </div>
 
             <h1 className="mt-6 text-3xl font-bold">
-              AI Disaster Management
+              Rakshak Ai
             </h1>
 
             <p className="mt-2 text-sm text-slate-400">
@@ -516,8 +516,7 @@ export default function LoginPage() {
           </div>
 
           <p className="mt-6 text-center text-xs text-slate-600">
-            🔒 AI Disaster Management Emergency
-            System
+            🔒 Rakshak Ai Emergency System
           </p>
 
         </div>

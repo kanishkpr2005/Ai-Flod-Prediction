@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Disaster Management",
+  title: "Rakshak Ai",
   description: "Live disaster monitoring and emergency response platform",
 };
 
