@@ -1,20 +1,20 @@
-# Vercel deployment
+# Vercel Frontend Deployment
 
-Deploy this repository as two Vercel projects:
+Deploy the Next.js frontend to Vercel:
 
-1. **Backend:** repository root, using the existing `vercel.json`.
-2. **Frontend:** the `frontend` directory as the Vercel project root, using the Next.js framework.
+1. **Import the repository into Vercel**.
+2. In the deployment configuration (or **Project Settings > General**):
+   - **Root Directory**: Set to `frontend`
+   - **Framework Preset**: Next.js (automatically detected)
+3. **Environment Variables**:
+   - `NEXT_PUBLIC_API_URL`: Your deployed Render backend URL (e.g., `https://ai-flod-prediction.onrender.com`).
 
-## Backend environment variables
+---
 
-- `DATABASE_URL`: hosted PostgreSQL connection string. SQLite is intentionally rejected on Vercel.
-- `FRONTEND_ORIGINS`: deployed frontend URL, for example `https://your-frontend.vercel.app`.
-- `SEED_DEFAULT_AUTHORITY=1` only when the deployment should create or update the default authority account. Prefer creating production accounts explicitly.
+# Render Backend Deployment
 
-The backend does not start its long-running weather monitor on Vercel. Run that work from a scheduled worker or a separate persistent service.
-
-## Frontend environment variables
-
-- `NEXT_PUBLIC_API_URL`: deployed backend URL, for example `https://your-backend.vercel.app`.
-
-There is no production localhost fallback. Both projects must be deployed and their URLs must be configured before the frontend can make API requests.
+The backend is deployed as a Web Service on Render:
+- **Build Command**: `pip install -r requirements.txt`
+- **Start Command**: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
+- **Environment Variables**:
+  - `FRONTEND_ORIGINS`: Your deployed Vercel frontend URL (e.g., `https://your-frontend.vercel.app`)
