@@ -102,18 +102,83 @@ select:focus-visible {
 .text-purple-400 { color: #ffb4b4 !important; }
 
 .leaflet-container {
-  background: #0b0b0b;
+  background: #080f1a;
   font-family: var(--font-geist-sans), sans-serif;
 }
 
 .leaflet-control-zoom a {
-  background: #111 !important;
-  border-color: #3a3a3a !important;
+  background: #0f172a !important;
+  border-color: #334155 !important;
   color: #fff !important;
 }
 
 .leaflet-control-zoom a:hover {
-  background: var(--emergency-red) !important;
+  background: #2563eb !important;
+}
+
+/* Custom Glassmorphic Dark Popups */
+.leaflet-popup-content-wrapper {
+  background: rgba(15, 23, 42, 0.95) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 35px -5px rgba(0, 0, 0, 0.8), 0 0 20px rgba(59, 130, 246, 0.25) !important;
+  backdrop-filter: blur(12px) !important;
+  padding: 4px !important;
+}
+
+.leaflet-popup-tip {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+}
+
+.leaflet-popup-content {
+  margin: 12px 14px !important;
+  line-height: 1.4 !important;
+}
+
+.leaflet-popup-close-button {
+  color: #94a3b8 !important;
+  padding: 8px 10px !important;
+}
+
+.leaflet-popup-close-button:hover {
+  color: #ffffff !important;
+}
+
+/* Radar Beacon Keyframe Animations */
+@keyframes beacon-ping {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@keyframes beacon-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 24px rgba(239, 68, 68, 1);
+  }
+}
+
+.animate-beacon-ping {
+  animation: beacon-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-beacon-pulse {
+  animation: beacon-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .scroll-signal-route {

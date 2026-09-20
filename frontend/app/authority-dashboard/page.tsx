@@ -558,6 +558,30 @@ export default function AuthorityDashboard() {
               responseUnits={mapUnits}
               responseTeams={mapTeams}
               districtAlerts={mapDistrictRisks}
+              selectedSOS={
+                selectedSOS && selectedSOS.latitude != null && selectedSOS.longitude != null
+                  ? {
+                      id: selectedSOS.id,
+                      latitude: selectedSOS.latitude,
+                      longitude: selectedSOS.longitude,
+                      type: "sos",
+                      name: selectedSOS.name,
+                      title: `SOS #${selectedSOS.id} - ${selectedSOS.name}`,
+                      priority: selectedSOS.priority,
+                      severity: selectedSOS.priority,
+                      location: selectedSOS.location,
+                      people: selectedSOS.people,
+                      status: selectedSOS.status,
+                      message: selectedSOS.description || selectedSOS.emergency || undefined,
+                      assigned_unit_id: selectedSOS.assigned_unit_id,
+                      assigned_team_id: selectedSOS.assigned_team_id,
+                    }
+                  : null
+              }
+              onSelectSOS={(item) => {
+                const found = sos.find((s) => s.id === item.id);
+                if (found) setSelectedSOS(found);
+              }}
             />
           </div>
         </div>
