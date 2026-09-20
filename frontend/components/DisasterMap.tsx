@@ -6,6 +6,7 @@ import {
   TileLayer,
   Marker,
   Popup,
+  Tooltip,
   Circle,
   useMap,
   LayersControl,
@@ -55,38 +56,27 @@ type Props = {
 };
 
 // ============================================================
-// CUSTOM GLOWING DIV ICONS
+// SLEEK, SIMPLE & INTERACTIVE DOT ICONS
 // ============================================================
 
-function createSOSIcon(item: MapItem, isSelected: boolean) {
-  const isCritical =
-    item.priority?.toUpperCase() === "CRITICAL" ||
-    item.severity?.toUpperCase() === "CRITICAL";
-  const color = isCritical ? "#ef4444" : "#f97316";
-  const size = isSelected ? 48 : 38;
-  const people = item.people && item.people > 1 ? item.people : null;
+function createSimpleSOSIcon(isSelected: boolean) {
+  const size = isSelected ? 22 : 16;
+  const pingSize = size + 10;
 
   const html = `
     <div style="position: relative; width: ${size}px; height: ${size}px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-      <!-- Outer Pulsating Radar Ring -->
-      <div class="animate-beacon-ping" style="position: absolute; inset: -4px; border-radius: 9999px; background-color: ${color}; opacity: 0.6;"></div>
+      <!-- Subtle Expanding Radar Ping -->
+      <div class="animate-beacon-ping" style="position: absolute; width: ${pingSize}px; height: ${pingSize}px; border-radius: 9999px; background-color: #ef4444; opacity: 0.5;"></div>
       
-      <!-- Inner Glowing Pulse Core -->
-      <div class="animate-beacon-pulse" style="position: relative; width: ${size - 10}px; height: ${size - 10}px; border-radius: 9999px; background: radial-gradient(circle at 30% 30%, #ff8a8a, ${color} 70%, #7f1d1d); border: 2px solid #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px ${color};">
-        <span style="font-size: ${size > 40 ? 18 : 14}px; line-height: 1;">🆘</span>
+      <!-- Solid Crisp Red Core -->
+      <div style="position: relative; width: ${size}px; height: ${size}px; border-radius: 9999px; background-color: #ef4444; border: 2px solid #ffffff; box-shadow: 0 0 10px rgba(239, 68, 68, 0.9); display: flex; align-items: center; justify-content: center; transition: transform 0.15s ease;">
+        <div style="width: 4px; height: 4px; border-radius: 9999px; background-color: #ffffff;"></div>
       </div>
-
-      <!-- People Count Badge -->
-      ${
-        people
-          ? `<span style="position: absolute; top: -3px; right: -4px; background: #0f172a; color: #f87171; border: 1px solid #ef4444; font-size: 10px; font-weight: 800; padding: 1px 4px; border-radius: 9999px; box-shadow: 0 2px 4px rgba(0,0,0,0.8);">👥${people}</span>`
-          : ""
-      }
     </div>
   `;
 
   return L.divIcon({
-    className: "leaflet-sos-div-icon",
+    className: "leaflet-simple-sos-icon",
     html,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
@@ -94,30 +84,19 @@ function createSOSIcon(item: MapItem, isSelected: boolean) {
   });
 }
 
-function createAlertIcon(item: MapItem, isSelected: boolean) {
-  const sev = (item.severity || "HIGH").toUpperCase();
-  const color =
-    sev === "CRITICAL" ? "#ef4444" : sev === "HIGH" ? "#f97316" : "#eab308";
-  const size = isSelected ? 42 : 34;
-  const icon =
-    item.disaster_type?.toLowerCase().includes("flood") ||
-    item.title?.toLowerCase().includes("flood")
-      ? "🌊"
-      : item.disaster_type?.toLowerCase().includes("fire")
-      ? "🔥"
-      : "⚠️";
+function createSimpleAlertIcon(severity: string | null | undefined, isSelected: boolean) {
+  const sev = (severity || "HIGH").toUpperCase();
+  const color = sev === "CRITICAL" ? "#ef4444" : sev === "HIGH" ? "#f97316" : "#eab308";
+  const size = isSelected ? 18 : 14;
 
   const html = `
     <div style="position: relative; width: ${size}px; height: ${size}px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-      <div style="position: absolute; inset: 0; border-radius: 9999px; background-color: ${color}; opacity: 0.35; filter: blur(3px);"></div>
-      <div style="position: relative; width: ${size - 8}px; height: ${size - 8}px; border-radius: 9999px; background: radial-gradient(circle at 30% 30%, #fef08a, ${color} 75%, #78350f); border: 2px solid #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 12px ${color};">
-        <span style="font-size: 13px; line-height: 1;">${icon}</span>
-      </div>
+      <div style="width: ${size}px; height: ${size}px; border-radius: 9999px; background-color: ${color}; border: 2px solid #ffffff; box-shadow: 0 0 8px ${color}; transition: transform 0.15s ease;"></div>
     </div>
   `;
 
   return L.divIcon({
-    className: "leaflet-alert-div-icon",
+    className: "leaflet-simple-alert-icon",
     html,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
@@ -125,45 +104,19 @@ function createAlertIcon(item: MapItem, isSelected: boolean) {
   });
 }
 
-function createResourceIcon(item: MapItem) {
-  const isTeam = item.type === "team";
+function createSimpleResourceIcon(type: string | null | undefined, isSelected: boolean) {
+  const isTeam = type === "team";
   const color = isTeam ? "#3b82f6" : "#10b981";
-  const icon = isTeam ? "🚒" : "🚑";
-  const size = 32;
+  const size = isSelected ? 16 : 12;
 
   const html = `
     <div style="position: relative; width: ${size}px; height: ${size}px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-      <div style="position: absolute; inset: 0; border-radius: 9999px; background-color: ${color}; opacity: 0.3; filter: blur(2px);"></div>
-      <div style="position: relative; width: ${size - 6}px; height: ${size - 6}px; border-radius: 9999px; background: radial-gradient(circle at 30% 30%, #e0f2fe, ${color} 80%, #0f172a); border: 1.5px solid #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px ${color};">
-        <span style="font-size: 13px; line-height: 1;">${icon}</span>
-      </div>
+      <div style="width: ${size}px; height: ${size}px; border-radius: 9999px; background-color: ${color}; border: 1.5px solid #ffffff; box-shadow: 0 0 6px ${color};"></div>
     </div>
   `;
 
   return L.divIcon({
-    className: "leaflet-resource-div-icon",
-    html,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-    popupAnchor: [0, -size / 2],
-  });
-}
-
-function createDistrictRiskIcon(item: MapItem) {
-  const prob = item.probability ?? 0;
-  const color = prob >= 70 ? "#ef4444" : prob >= 40 ? "#f97316" : "#3b82f6";
-  const size = 30;
-
-  const html = `
-    <div style="position: relative; width: ${size}px; height: ${size}px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-      <div style="position: relative; width: ${size - 4}px; height: ${size - 4}px; border-radius: 8px; background: #0f172a; border: 2px solid ${color}; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 0 10px ${color};">
-        <span style="font-size: 9px; font-weight: 800; color: ${color}; line-height: 1;">${prob}%</span>
-      </div>
-    </div>
-  `;
-
-  return L.divIcon({
-    className: "leaflet-risk-div-icon",
+    className: "leaflet-simple-resource-icon",
     html,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
@@ -198,7 +151,6 @@ function MapController({
   const map = useMap();
   const initialFitDone = useRef(false);
 
-  // Auto-fit bounds on mount / triggerFit
   useEffect(() => {
     if (!items.length) return;
 
@@ -209,7 +161,6 @@ function MapController({
 
     if (!valid.length) return;
 
-    // Only fit if initial or explicitly triggered
     if (!initialFitDone.current || triggerFit > 0) {
       initialFitDone.current = true;
       const bounds = valid.map((item) => [
@@ -224,7 +175,6 @@ function MapController({
     }
   }, [items, map, triggerFit]);
 
-  // Smooth Fly-To when an SOS is selected
   useEffect(() => {
     if (
       selectedSOS &&
@@ -232,7 +182,7 @@ function MapController({
       Number.isFinite(selectedSOS.longitude)
     ) {
       map.flyTo([selectedSOS.latitude, selectedSOS.longitude], 13, {
-        duration: 1.4,
+        duration: 1.2,
         easeLinearity: 0.25,
       });
     }
@@ -242,10 +192,10 @@ function MapController({
 }
 
 // ============================================================
-// RICH MARKER POPUP
+// CLEAN GLASSMORPHIC MARKER POPUP
 // ============================================================
 
-function RichMarkerPopup({
+function SimpleMarkerPopup({
   item,
   onFocus,
 }: {
@@ -256,16 +206,16 @@ function RichMarkerPopup({
 
   return (
     <Popup className="custom-dark-popup">
-      <div className="min-w-[240px] max-w-[280px] p-1 text-slate-100">
+      <div className="min-w-[220px] max-w-[260px] p-0.5 text-slate-100">
         
-        {/* Header Badge */}
-        <div className="flex items-center justify-between border-b border-slate-700/80 pb-2 mb-2">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-slate-700/80 pb-1.5 mb-2">
           <div className="flex items-center gap-1.5 font-bold text-xs">
-            {type === "sos" && <span className="text-red-400">🚨 EMERGENCY SOS</span>}
+            {type === "sos" && <span className="text-red-400">🚨 SOS REQUEST</span>}
             {type === "alert" && <span className="text-amber-400">⚠️ DISASTER ALERT</span>}
             {type === "team" && <span className="text-blue-400">🚒 RESCUE TEAM</span>}
             {type === "unit" && <span className="text-emerald-400">🚑 RESPONSE UNIT</span>}
-            {type === "district-risk" && <span className="text-cyan-400">🌐 FLOOD RISK ZONE</span>}
+            {type === "district-risk" && <span className="text-cyan-400">🌐 FLOOD RISK</span>}
           </div>
 
           <span
@@ -289,42 +239,36 @@ function RichMarkerPopup({
         </h4>
 
         {item.location && (
-          <p className="mt-1 text-xs text-slate-400 flex items-center gap-1">
+          <p className="mt-1 text-xs text-slate-400">
             📍 {item.location}
           </p>
         )}
 
-        {/* SOS Specific Details */}
+        {/* SOS Details */}
         {type === "sos" && (
-          <div className="mt-3 space-y-1.5 rounded-xl border border-red-500/20 bg-red-950/20 p-2.5 text-xs">
+          <div className="mt-2 space-y-1 rounded-xl border border-red-500/20 bg-red-950/20 p-2 text-xs">
             <div className="flex justify-between">
-              <span className="text-slate-400">People Affected:</span>
-              <span className="font-bold text-red-300">👥 {item.people || 1} people</span>
+              <span className="text-slate-400">People:</span>
+              <span className="font-bold text-red-300">👥 {item.people || 1}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-400">Status:</span>
               <span className="font-semibold text-white">{item.status || "PENDING"}</span>
             </div>
-            {item.assigned_unit_id && (
-              <div className="flex justify-between text-[11px] text-emerald-400">
-                <span>Assigned Unit:</span>
-                <span>Unit #{item.assigned_unit_id}</span>
-              </div>
-            )}
             {item.message && (
-              <p className="mt-1.5 border-t border-red-500/20 pt-1.5 text-[11px] text-slate-300 italic">
+              <p className="mt-1 border-t border-red-500/20 pt-1 text-[11px] text-slate-300 italic">
                 "{item.message}"
               </p>
             )}
           </div>
         )}
 
-        {/* Alert Specific Details */}
+        {/* Alert Details */}
         {type === "alert" && (
-          <div className="mt-3 space-y-1.5 rounded-xl border border-slate-700 bg-slate-800/40 p-2.5 text-xs">
+          <div className="mt-2 space-y-1 rounded-xl border border-slate-700 bg-slate-800/40 p-2 text-xs">
             {item.disaster_type && (
               <div className="flex justify-between">
-                <span className="text-slate-400">Category:</span>
+                <span className="text-slate-400">Type:</span>
                 <span className="font-semibold text-white capitalize">{item.disaster_type}</span>
               </div>
             )}
@@ -338,19 +282,13 @@ function RichMarkerPopup({
 
         {/* Resource Details */}
         {(type === "team" || type === "unit") && (
-          <div className="mt-3 space-y-1.5 rounded-xl border border-slate-700 bg-slate-800/40 p-2.5 text-xs">
+          <div className="mt-2 space-y-1 rounded-xl border border-slate-700 bg-slate-800/40 p-2 text-xs">
             <div className="flex justify-between">
               <span className="text-slate-400">Type:</span>
               <span className="font-semibold text-white">{item.team_type || item.unit_type || "Tactical"}</span>
             </div>
-            {item.members && (
-              <div className="flex justify-between">
-                <span className="text-slate-400">Members:</span>
-                <span className="font-semibold text-blue-300">👥 {item.members}</span>
-              </div>
-            )}
             <div className="flex justify-between">
-              <span className="text-slate-400">Operational Status:</span>
+              <span className="text-slate-400">Status:</span>
               <span className="font-bold text-emerald-400">{item.status || "AVAILABLE"}</span>
             </div>
           </div>
@@ -358,24 +296,16 @@ function RichMarkerPopup({
 
         {/* District Risk Details */}
         {type === "district-risk" && (
-          <div className="mt-3 space-y-1 rounded-xl border border-blue-500/20 bg-blue-950/20 p-2.5 text-xs">
+          <div className="mt-2 space-y-1 rounded-xl border border-blue-500/20 bg-blue-950/20 p-2 text-xs">
             <div className="flex justify-between">
-              <span className="text-slate-400">Flood Probability:</span>
+              <span className="text-slate-400">Flood Risk:</span>
               <span className="font-bold text-red-400">{item.probability ?? 0}%</span>
-            </div>
-            <div className="flex justify-between text-[11px]">
-              <span className="text-slate-400">Rainfall Signal:</span>
-              <span className="text-slate-200">{item.rainfall_probability ?? 0}%</span>
-            </div>
-            <div className="flex justify-between text-[11px]">
-              <span className="text-slate-400">Weather Signal:</span>
-              <span className="text-slate-200">{item.weather_probability ?? 0}%</span>
             </div>
           </div>
         )}
 
-        {/* Coordinates & Actions */}
-        <div className="mt-3 flex items-center justify-between border-t border-slate-700/60 pt-2 text-[10px] text-slate-500">
+        {/* Coordinates */}
+        <div className="mt-2.5 flex items-center justify-between border-t border-slate-700/60 pt-1.5 text-[10px] text-slate-500">
           <span>
             {item.latitude.toFixed(4)}, {item.longitude.toFixed(4)}
           </span>
@@ -383,9 +313,9 @@ function RichMarkerPopup({
             <button
               type="button"
               onClick={() => onFocus(item)}
-              className="rounded-lg bg-blue-600/30 px-2 py-1 font-semibold text-blue-300 transition hover:bg-blue-600 hover:text-white"
+              className="rounded-lg bg-blue-600/30 px-2 py-0.5 font-semibold text-blue-300 transition hover:bg-blue-600 hover:text-white"
             >
-              🎯 Center Focus
+              🎯 Focus
             </button>
           )}
         </div>
@@ -396,7 +326,7 @@ function RichMarkerPopup({
 }
 
 // ============================================================
-// MAIN DISASTER MAP COMPONENT
+// MAIN DISASTER MAP
 // ============================================================
 
 export default function DisasterMap({
@@ -408,13 +338,12 @@ export default function DisasterMap({
   selectedSOS = null,
   onSelectSOS,
 }: Props) {
-  const [filter, setFilter] = useState<"ALL" | "SOS" | "ALERTS" | "RESOURCES" | "RISKS">("ALL");
+  const [filter, setFilter] = useState<"ALL" | "SOS" | "ALERTS" | "RESOURCES">("ALL");
   const [isPlayingSOS, setIsPlayingSOS] = useState(false);
   const [sosPlayIndex, setSosPlayIndex] = useState(0);
   const [triggerFit, setTriggerFit] = useState(0);
   const [focusedItem, setFocusedItem] = useState<MapItem | null>(null);
 
-  // Filtered valid SOS items
   const validSOS = useMemo(
     () =>
       sosRequests.filter(
@@ -481,7 +410,7 @@ export default function DisasterMap({
     [validAlerts, validSOS, validUnits, validTeams, validDistrictRisks]
   );
 
-  // Handle Play SOS / Cycle through emergencies
+  // Auto-cycle through SOS requests when Play SOS is active
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (isPlayingSOS && validSOS.length > 0) {
@@ -493,7 +422,7 @@ export default function DisasterMap({
           if (onSelectSOS) onSelectSOS(target);
           return next;
         });
-      }, 4000);
+      }, 3500);
     }
     return () => clearInterval(timer);
   }, [isPlayingSOS, validSOS, onSelectSOS]);
@@ -515,11 +444,11 @@ export default function DisasterMap({
   return (
     <div className="relative h-full w-full overflow-hidden rounded-xl bg-slate-950">
       
-      {/* MAP INTERACTIVE TOP TOOLBAR */}
+      {/* MAP TOOLBAR */}
       <div className="absolute top-3 left-3 z-[400] flex flex-wrap items-center gap-2 pointer-events-auto">
         
         {/* Filter Pills */}
-        <div className="flex items-center rounded-xl border border-slate-700/80 bg-slate-900/90 p-1 shadow-lg backdrop-blur-md text-xs">
+        <div className="flex items-center rounded-xl border border-slate-700/80 bg-slate-900/95 p-1 shadow-lg backdrop-blur-md text-xs">
           <button
             type="button"
             onClick={() => setFilter("ALL")}
@@ -533,32 +462,34 @@ export default function DisasterMap({
           <button
             type="button"
             onClick={() => setFilter("SOS")}
-            className={`flex items-center gap-1 rounded-lg px-2.5 py-1 font-semibold transition ${
+            className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-semibold transition ${
               filter === "SOS" ? "bg-red-600 text-white shadow" : "text-red-400 hover:bg-red-500/10"
             }`}
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-red-400 animate-pulse"></span>
+            <span className="h-2 w-2 rounded-full bg-red-400"></span>
             SOS ({validSOS.length})
           </button>
 
           <button
             type="button"
             onClick={() => setFilter("ALERTS")}
-            className={`rounded-lg px-2.5 py-1 font-semibold transition ${
+            className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-semibold transition ${
               filter === "ALERTS" ? "bg-amber-600 text-white shadow" : "text-amber-400 hover:bg-amber-500/10"
             }`}
           >
+            <span className="h-2 w-2 rounded-full bg-amber-400"></span>
             Alerts ({validAlerts.length})
           </button>
 
           <button
             type="button"
             onClick={() => setFilter("RESOURCES")}
-            className={`rounded-lg px-2.5 py-1 font-semibold transition ${
+            className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-semibold transition ${
               filter === "RESOURCES" ? "bg-emerald-600 text-white shadow" : "text-emerald-400 hover:bg-emerald-500/10"
             }`}
           >
-            Resources ({validUnits.length + validTeams.length})
+            <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
+            Units ({validUnits.length + validTeams.length})
           </button>
         </div>
 
@@ -571,7 +502,7 @@ export default function DisasterMap({
               className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold shadow-lg backdrop-blur-md transition ${
                 isPlayingSOS
                   ? "border-red-500 bg-red-600 text-white animate-pulse"
-                  : "border-slate-700/80 bg-slate-900/90 text-slate-200 hover:border-red-500 hover:text-white"
+                  : "border-slate-700/80 bg-slate-900/95 text-slate-200 hover:border-red-500 hover:text-white"
               }`}
             >
               <span>{isPlayingSOS ? "⏸ Pause SOS Player" : "▶ Play SOS Layer"}</span>
@@ -585,7 +516,7 @@ export default function DisasterMap({
             type="button"
             onClick={() => setTriggerFit((prev) => prev + 1)}
             title="Auto center and fit all markers"
-            className="flex h-8 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-900/90 px-2.5 text-xs font-semibold text-slate-300 shadow-lg backdrop-blur-md transition hover:border-blue-500 hover:text-white"
+            className="flex h-8 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-900/95 px-2.5 text-xs font-semibold text-slate-300 shadow-lg backdrop-blur-md transition hover:border-blue-500 hover:text-white"
           >
             🎯 Fit Map
           </button>
@@ -607,14 +538,13 @@ export default function DisasterMap({
           triggerFit={triggerFit}
         />
 
-        {/* LAYER SELECTOR */}
+        {/* 100% FREE BASE MAPS - NO API KEY REQUIRED */}
         <LayersControl position="bottomright">
           
-          {/* Base Maps */}
-          <LayersControl.BaseLayer checked name="🌌 Tactical Dark (Ops View)">
+          <LayersControl.BaseLayer checked name="🗺️ Street Map (OpenStreetMap)">
             <TileLayer
-              attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
           </LayersControl.BaseLayer>
 
@@ -625,49 +555,19 @@ export default function DisasterMap({
             />
           </LayersControl.BaseLayer>
 
-          <LayersControl.BaseLayer name="🗺️ Street Map (OSM)">
+          <LayersControl.BaseLayer name="⛰️ Topographic Map (Esri)">
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution="Tiles &copy; Esri"
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
             />
           </LayersControl.BaseLayer>
-
-          {/* ===================================================
-              LAYER 2: LIVE SOS EMERGENCY LAYER (TOP PRIORITY)
-          =================================================== */}
-          {(filter === "ALL" || filter === "SOS") && (
-            <LayersControl.Overlay checked name="🚨 Layer 2: Live SOS Beacons (Top Priority)">
-              <div style={{ display: "none" }}></div>
-            </LayersControl.Overlay>
-          )}
-
-          {/* LAYER 1: WEATHER & DISASTER ALERTS */}
-          {(filter === "ALL" || filter === "ALERTS") && (
-            <LayersControl.Overlay checked name="⚠️ Layer 1: Active Disaster Alerts">
-              <div style={{ display: "none" }}></div>
-            </LayersControl.Overlay>
-          )}
-
-          {/* LAYER 3: RESPONSE UNITS & RESCUE TEAMS */}
-          {(filter === "ALL" || filter === "RESOURCES") && (
-            <LayersControl.Overlay checked name="🚑 Layer 3: Response Teams & Units">
-              <div style={{ display: "none" }}></div>
-            </LayersControl.Overlay>
-          )}
-
-          {/* LAYER 4: DISTRICT FLOOD RISKS */}
-          {(filter === "ALL" || filter === "RISKS") && (
-            <LayersControl.Overlay checked name="🌐 Layer 4: District Risk Zones">
-              <div style={{ display: "none" }}></div>
-            </LayersControl.Overlay>
-          )}
 
         </LayersControl>
 
         {/* =====================================================
-            RENDER DISTRICT RISK POLYGONS / CIRCLES
+            DISTRICT RISK POLYGONS
         ===================================================== */}
-        {(filter === "ALL" || filter === "RISKS") &&
+        {filter === "ALL" &&
           validDistrictRisks.map((item, idx) => {
             const prob = item.probability ?? 0;
             const color =
@@ -676,48 +576,45 @@ export default function DisasterMap({
               <Circle
                 key={`district-circle-${item.id || idx}`}
                 center={[item.latitude, item.longitude]}
-                radius={25000}
+                radius={22000}
                 pathOptions={{
                   color,
                   fillColor: color,
-                  fillOpacity: 0.18,
+                  fillOpacity: 0.12,
                   weight: 1.5,
                   dashArray: "4, 6",
                 }}
               >
-                <RichMarkerPopup item={item} onFocus={setFocusedItem} />
+                <Tooltip direction="top" opacity={0.95}>
+                  {item.district || "District"}: Flood Risk {prob}%
+                </Tooltip>
+                <SimpleMarkerPopup item={item} onFocus={setFocusedItem} />
               </Circle>
             );
           })}
 
-        {/* DISTRICT RISK BADGES */}
-        {(filter === "ALL" || filter === "RISKS") &&
-          validDistrictRisks.map((item, idx) => (
-            <Marker
-              key={`risk-badge-${item.id || idx}`}
-              position={[item.latitude, item.longitude]}
-              icon={createDistrictRiskIcon(item)}
-            >
-              <RichMarkerPopup item={item} onFocus={setFocusedItem} />
-            </Marker>
-          ))}
-
         {/* =====================================================
-            LAYER 3: RESPONSE TEAMS & UNITS
+            LAYER 3: RESPONSE TEAMS & UNITS (SIMPLE DOTS)
         ===================================================== */}
         {(filter === "ALL" || filter === "RESOURCES") &&
-          [...validUnits, ...validTeams].map((item, idx) => (
-            <Marker
-              key={`resource-${item.type}-${item.id || idx}`}
-              position={[item.latitude, item.longitude]}
-              icon={createResourceIcon(item)}
-            >
-              <RichMarkerPopup item={item} onFocus={setFocusedItem} />
-            </Marker>
-          ))}
+          [...validUnits, ...validTeams].map((item, idx) => {
+            const isSelected = activeFocus?.id === item.id;
+            return (
+              <Marker
+                key={`resource-${item.type}-${item.id || idx}`}
+                position={[item.latitude, item.longitude]}
+                icon={createSimpleResourceIcon(item.type, isSelected)}
+              >
+                <Tooltip direction="top" offset={[0, -8]} opacity={0.95}>
+                  {item.name || "Resource"} ({item.status || "AVAILABLE"})
+                </Tooltip>
+                <SimpleMarkerPopup item={item} onFocus={setFocusedItem} />
+              </Marker>
+            );
+          })}
 
         {/* =====================================================
-            LAYER 1: DISASTER & WEATHER ALERTS
+            LAYER 1: DISASTER & WEATHER ALERTS (SIMPLE DOTS)
         ===================================================== */}
         {(filter === "ALL" || filter === "ALERTS") &&
           validAlerts.map((item, idx) => {
@@ -726,16 +623,19 @@ export default function DisasterMap({
               <Marker
                 key={`alert-${item.id || idx}`}
                 position={[item.latitude, item.longitude]}
-                icon={createAlertIcon(item, isSelected)}
+                icon={createSimpleAlertIcon(item.severity, isSelected)}
                 zIndexOffset={100}
               >
-                <RichMarkerPopup item={item} onFocus={setFocusedItem} />
+                <Tooltip direction="top" offset={[0, -9]} opacity={0.95}>
+                  ⚠️ {item.title || "Alert"} [{item.severity || "HIGH"}]
+                </Tooltip>
+                <SimpleMarkerPopup item={item} onFocus={setFocusedItem} />
               </Marker>
             );
           })}
 
         {/* =====================================================
-            LAYER 2: LIVE SOS BEACONS (TOP PRIORITY LAYER)
+            LAYER 2: LIVE SOS BEACONS (TOP PRIORITY LAYER - SIMPLE RADAR DOTS)
         ===================================================== */}
         {(filter === "ALL" || filter === "SOS") &&
           validSOS.map((item, idx) => {
@@ -746,7 +646,7 @@ export default function DisasterMap({
               <Marker
                 key={`sos-${item.id || idx}`}
                 position={[item.latitude, item.longitude]}
-                icon={createSOSIcon(item, isSelected)}
+                icon={createSimpleSOSIcon(isSelected)}
                 zIndexOffset={1000} // Keeps SOS on top layer
                 eventHandlers={{
                   click: () => {
@@ -755,7 +655,10 @@ export default function DisasterMap({
                   },
                 }}
               >
-                <RichMarkerPopup item={item} onFocus={setFocusedItem} />
+                <Tooltip direction="top" offset={[0, -11]} opacity={0.95}>
+                  🚨 SOS #{item.id} - {item.name} ({item.people || 1} people)
+                </Tooltip>
+                <SimpleMarkerPopup item={item} onFocus={setFocusedItem} />
               </Marker>
             );
           })}
