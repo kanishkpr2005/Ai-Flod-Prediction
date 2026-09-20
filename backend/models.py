@@ -400,3 +400,18 @@ class Notification(Base):
     read = Column(Integer, default=0, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     expires_at = Column(DateTime, nullable=True)
+
+
+# ============================================================
+# PASSWORD RESET CODES
+# ============================================================
+
+class PasswordResetCode(Base):
+    __tablename__ = "password_resets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, index=True, nullable=False)
+    code = Column(String, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    used = Column(Integer, default=0, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
