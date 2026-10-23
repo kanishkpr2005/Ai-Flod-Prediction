@@ -31,7 +31,7 @@ def get_smtp_config():
         os.getenv("SMTP_FROM")
         or os.getenv("MAIL_FROM")
         or user
-        or "noreply@rakshak-ai.org"
+        or "noreply@flood-prediction.gov.in"
     ).strip()
     return host, port, user, password, sender
 
@@ -41,7 +41,7 @@ def send_reset_code_email(to_email: str, recipient_name: str, code: str) -> dict
     clean_to = to_email.strip().lower()
     clean_name = (recipient_name or "User").strip()
 
-    subject = f"Rakshak Ai - Password Reset Code: {code}"
+    subject = f"AI Flood Prediction Platform - Password Reset Code: {code}"
 
     html_content = f"""<!DOCTYPE html>
 <html>
@@ -63,16 +63,16 @@ def send_reset_code_email(to_email: str, recipient_name: str, code: str) -> dict
 <body>
   <div class="container">
     <div class="logo">
-      <div class="logo-badge">🛡️</div>
+      <div class="logo-badge">&#128737;</div>
       <div>
-        <h1 class="logo-title">Rakshak Ai</h1>
-        <p class="logo-sub">Emergency Response & Disaster Management</p>
+        <h1 class="logo-title">AI Flood Prediction Platform</h1>
+        <p class="logo-sub">Emergency Response &amp; Flood Intelligence</p>
       </div>
     </div>
     <h2 style="font-size: 18px; font-weight: 600; color: #f1f5f9; margin-top: 0;">Password Reset Request</h2>
     <p style="font-size: 14px; color: #cbd5e1; line-height: 1.6;">
       Hello <strong>{clean_name}</strong>,<br>
-      We received a request to reset the password for your Rakshak Ai account. Use the 6-digit verification code below to proceed:
+      We received a request to reset the password for your AI Flood Prediction Platform account. Use the 6-digit verification code below to proceed:
     </p>
     <div class="code-box">
       <div class="code">{code}</div>
@@ -82,18 +82,18 @@ def send_reset_code_email(to_email: str, recipient_name: str, code: str) -> dict
       If you did not request a password reset, please ignore this email or contact your administrator immediately. Your password will remain unchanged.
     </p>
     <div class="footer">
-      © 2026 Rakshak Ai Platform • Secure Emergency Operations System
+      &copy; 2026 AI Flood Prediction Platform &bull; Secure Emergency Operations System
     </div>
   </div>
 </body>
 </html>
 """
 
-    text_content = f"""Rakshak Ai - Password Reset Verification Code
+    text_content = f"""AI Flood Prediction Platform - Password Reset Verification Code
 
 Hello {clean_name},
 
-We received a request to reset the password for your Rakshak Ai account.
+We received a request to reset the password for your AI Flood Prediction Platform account.
 Your 6-digit verification code is:
 
 {code}
@@ -101,7 +101,7 @@ Your 6-digit verification code is:
 This code is valid for 15 minutes.
 If you did not request this password reset, please ignore this message.
 
-Rakshak Ai Team
+AI Flood Prediction Platform Operations Team
 """
 
     if not user or not password:

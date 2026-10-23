@@ -58,8 +58,24 @@ export function getLowRiskPredictions() {
   return apiFetch("/live-predictions/low");
 }
 
+export function getCriticalRiskPredictions() {
+  return apiFetch("/live-predictions/critical");
+}
+
 export function getPredictionSummary() {
   return apiFetch("/live-predictions/summary");
+}
+
+export function getModelIntelligence() {
+  return apiFetch("/model-intelligence");
+}
+
+export function getSystemStatus() {
+  return apiFetch("/system/status");
+}
+
+export function getDistrictPrediction(districtName: string) {
+  return apiFetch(`/live-predictions/district/${encodeURIComponent(districtName)}`);
 }
 
 /* =========================================================
@@ -185,4 +201,15 @@ export async function reverseGeocode(
   return apiFetch(
     `/location/reverse?latitude=${latitude}&longitude=${longitude}`
   );
+}
+
+/* =========================================================
+   ACCOUNT MANAGEMENT
+========================================================= */
+
+export function deleteAccount(data: { email: string; password: string }) {
+  return apiFetch("/auth/delete-account", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }

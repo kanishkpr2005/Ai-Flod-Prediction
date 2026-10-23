@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Rakshak Ai",
-  description: "Live disaster monitoring and emergency response platform",
+  title: "AI Flood Prediction Platform | Early Warning & Response System",
+  description:
+    "Official district-level AI flood intelligence platform combining historical rainfall, live weather, and geospatial signals for proactive early warning and rapid emergency response.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

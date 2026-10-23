@@ -18,11 +18,11 @@ from sqlalchemy.orm import Session
 
 try:
     from .database import SessionLocal, init_db
-    from .models import UserDB, PasswordResetCode
+    from .models import UserDB, PasswordResetCode, Notification
     from .email_service import send_reset_code_email
 except ImportError:
     from database import SessionLocal, init_db
-    from models import UserDB, PasswordResetCode
+    from models import UserDB, PasswordResetCode, Notification
     from email_service import send_reset_code_email
 
 
@@ -447,3 +447,74 @@ def reset_password(
         "success": True,
         "message": "Password updated successfully! You can now log in with your new password.",
     }
+
+
+# ============================================================
+# DELETE ACCOUNT
+# ============================================================
+
+class DeleteAccountRequest(BaseModel):
+    email: str
+    password: str
+
+
+@router.post("/delete-account")
+@router.delete("/account")
+def delete_user_account(
+    req: DeleteAccountRequest,
+    db: Session = Depends(get_db),
+):
+    email = req.email.strip().lower()
+
+    if not email or not req.password:
+        return {
+            "success": False,
+            "message": "Email and password are required to delete an account.",
+        }
+
+    if email == DEFAULT_AUTHORITY_EMAIL.lower():
+        return {
+            "success": False,
+            "message": "The primary authority command account cannot be deleted.",
+        }
+
+    user = (
+        db.query(UserDB)
+        .filter(func.lower(func.trim(UserDB.email)) == email)
+        .first()
+    )
+
+    if not user:
+        return {
+            "success": False,
+            "message": "Account not found.",
+        }
+
+    password_hash = hash_password(req.password)
+    password_hash_trimmed = hash_password(req.password.strip())
+
+    if user.password_hash != password_hash and user.password_hash != password_hash_trimmed:
+        return {
+            "success": False,
+            "message": "Incorrect password. Account deletion aborted for security.",
+        }
+
+    try:
+        # Delete associated notifications
+        db.query(Notification).filter(Notification.recipient_user_id == user.id).delete()
+        # Delete password reset codes
+        db.query(PasswordResetCode).filter(func.lower(func.trim(PasswordResetCode.email)) == email).delete()
+        # Delete user record
+        db.delete(user)
+        db.commit()
+
+        return {
+            "success": True,
+            "message": "Your account and associated profile data have been permanently deleted.",
+        }
+    except Exception as err:
+        db.rollback()
+        return {
+            "success": False,
+            "message": f"Account deletion failed: {str(err)}",
+        }

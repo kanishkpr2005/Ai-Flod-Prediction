@@ -1,7 +1,7 @@
 from datetime import datetime
 from math import radians, sin, cos, sqrt, atan2
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Body
 from pydantic import BaseModel
 
 try:
@@ -377,6 +377,7 @@ def create_sos(
                 "Emergency SOS registered successfully"
             ),
             "sos": serialize_sos(sos),
+            "sos_id": sos.id,
             "assigned_unit": assigned_unit,
             "assigned_team": assigned_team,
         }
@@ -575,8 +576,15 @@ def get_single_sos(
 @router.patch("/sos/{sos_id}/status")
 def update_sos_status(
     sos_id: int,
-    status: str,
+    status: str = None,
+    payload: dict = Body(None),
 ):
+    actual_status = status or (payload.get("status") if isinstance(payload, dict) else None)
+    if not actual_status:
+        return {
+            "success": False,
+            "message": "Status parameter is required via query string or JSON body.",
+        }
 
     db = SessionLocal()
 
@@ -605,9 +613,9 @@ def update_sos_status(
             "CANCELLED",
         ]
 
-        status = status.upper()
+        actual_status = str(actual_status).upper()
 
-        if status not in allowed:
+        if actual_status not in allowed:
 
             return {
                 "success": False,
@@ -617,9 +625,9 @@ def update_sos_status(
                 ),
             }
 
-        sos.status = status
+        sos.status = actual_status
 
-        if status == "RESOLVED":
+        if actual_status == "RESOLVED":
 
             sos.resolved_at = (
                 datetime.utcnow()

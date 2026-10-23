@@ -48,6 +48,12 @@ def district_prediction_rows():
                 continue
 
             probability = number(row.get("final_flood_probability")) or 0
+            rainfall_1d = number(row.get("rainfall_1d"))
+            rainfall_3d = number(row.get("rainfall_3d"))
+            rainfall_7d = number(row.get("rainfall_7d"))
+            rainfall_30d = number(row.get("rainfall_30d"))
+            trend = row.get("rainfall_trend") or "Stable"
+
             rows.append({
                 "id": f"district-{row.get('state', '')}-{row.get('district', '')}",
                 "type": "district-risk",
@@ -59,7 +65,13 @@ def district_prediction_rows():
                 "probability": round(probability * 100, 1),
                 "rainfall_probability": round((number(row.get("rainfall_ml_probability")) or 0) * 100, 1),
                 "weather_probability": round((number(row.get("weather_probability")) or 0) * 100, 1),
-                "weather_data_available": row.get("weather_data_available") == "True",
+                "weather_data_available": str(row.get("weather_data_available")).lower() in ["true", "1"],
+                "rainfall_1d": round(rainfall_1d, 1) if rainfall_1d is not None else 0.0,
+                "rainfall_3d": round(rainfall_3d, 1) if rainfall_3d is not None else 0.0,
+                "rainfall_7d": round(rainfall_7d, 1) if rainfall_7d is not None else 0.0,
+                "rainfall_30d": round(rainfall_30d, 1) if rainfall_30d is not None else 0.0,
+                "rainfall_trend": trend,
+                "satellite_status": "Satellite Intelligence — Integration Ready (Copernicus Sentinel-1)",
                 "title": f"{row.get('district')} district risk",
                 "location": f"{row.get('district')}, {row.get('state')}",
             })

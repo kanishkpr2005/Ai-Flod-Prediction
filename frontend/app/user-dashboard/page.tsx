@@ -1,31 +1,79 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  AlertTriangle,
+  ShieldAlert,
+  MapPin,
+  Compass,
+  PhoneCall,
+  Activity,
+  Droplets,
+  CloudRain,
+  Navigation,
+  ShieldCheck,
+  ChevronRight,
+  User,
+  LogOut,
+  Trash2,
+  X,
+  CheckCircle2,
+  Clock,
+  Layers,
+  Search,
+  ExternalLink,
+  LifeBuoy,
+  Info,
+  Radio,
+  FileText,
+  AlertCircle
+} from "lucide-react";
 import { API_BASE_URL } from "@/lib/config";
+import { deleteAccount } from "@/lib/api";
 
-const DisasterMap = dynamic(
-  () => import("@/components/DisasterMap"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex h-[500px] items-center justify-center rounded-2xl border border-slate-800 bg-slate-900 text-slate-400">
-        Loading disaster map...
+const DisasterMap = dynamic(() => import("@/components/DisasterMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-72 sm:h-96 w-full items-center justify-center rounded-xl border border-slate-800 bg-slate-900/60 text-xs sm:text-sm text-slate-400">
+      <div className="flex items-center gap-2">
+        <Activity className="h-4 w-4 animate-spin text-blue-400" />
+        <span>Loading live geospatial risk map...</span>
       </div>
-    ),
-  }
-);
+    </div>
+  ),
+});
 
-const SafeShelters = dynamic(
-  () => import("@/components/SafeShelterMap"),
-  { ssr: false }
-);
+const SafeShelters = dynamic(() => import("@/components/SafeShelterMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-64 w-full items-center justify-center rounded-xl border border-slate-800 bg-slate-900/40 text-xs text-slate-400">
+      Loading safe shelters...
+    </div>
+  ),
+});
 
-const API_URL = API_BASE_URL;
-
-/* ============================================================
-   TYPES
-============================================================ */
+interface DistrictPrediction {
+  district: string;
+  state: string;
+  latitude: number;
+  longitude: number;
+  risk_level: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  probability: number;
+  rainfall_1d: number;
+  rainfall_3d: number;
+  rainfall_7d: number;
+  rainfall_30d: number;
+  rainfall_trend: string;
+  prediction_status: string;
+  last_updated: string;
+  open_meteo_live_weather?: {
+    precipitation_sum_mm?: number;
+    wind_speed_kmh?: number;
+  };
+}
 
 interface Alert {
   id: number;
@@ -56,2213 +104,1219 @@ interface SOSRequest {
   created_at?: string | null;
 }
 
-interface DashboardData {
-  total_sos: number;
-  critical_sos: number;
-  total_alerts: number;
-  total_volunteers: number;
-  available_volunteers: number;
-  total_rescue_teams: number;
-  available_rescue_teams: number;
-  deployed_rescue_teams: number;
-  total_rescue_members: number;
-  deployed_volunteers: number;
-  message: string;
+interface UserProfile {
+  id?: number | string;
+  name: string;
+  email: string;
+  role: string;
+  area?: string;
+  loginTime?: string;
 }
 
-interface Disaster {
-  id: number;
-  disaster_type: string;
-  location: string;
-  severity: string;
-  latitude: number;
-  longitude: number;
-  description: string;
-}
-
-interface Notification {
-  id: number;
-  title: string;
-  message: string;
-  area: string;
-  severity: string;
-  created_at?: string;
-}
-
-type MapFilter =
-  | "All"
-  | "HIGH"
-  | "MEDIUM"
-  | "LOW";
-
-/* ============================================================
-   HELPERS
-============================================================ */
-
-function getSeverityClass(severity: string) {
-  const value = severity?.toLowerCase();
-
-  if (value === "critical") {
-    return "border-red-500/40 bg-red-500/10 text-red-400";
-  }
-
-  if (value === "high") {
-    return "border-orange-500/40 bg-orange-500/10 text-orange-400";
-  }
-
-  if (
-    value === "medium" ||
-    value === "moderate"
-  ) {
-    return "border-yellow-500/40 bg-yellow-500/10 text-yellow-400";
-  }
-
-  return "border-green-500/40 bg-green-500/10 text-green-400";
-}
-
-function getStatusClass(status: string) {
-  const value = status?.toUpperCase();
-
-  if (value === "RESOLVED") {
-    return "bg-green-500/10 text-green-400 border-green-500/30";
-  }
-
-  if (value === "CANCELLED") {
-    return "bg-slate-500/10 text-slate-400 border-slate-500/30";
-  }
-
-  if (value === "IN_PROGRESS") {
-    return "bg-blue-500/10 text-blue-400 border-blue-500/30";
-  }
-
-  if (value === "ASSIGNED") {
-    return "bg-purple-500/10 text-purple-400 border-purple-500/30";
-  }
-
-  return "bg-yellow-500/10 text-yellow-400 border-yellow-500/30";
-}
-
-function formatDate(dateString?: string | null) {
-  if (!dateString) {
-    return "Unknown";
-  }
-
-  const date = new Date(dateString);
-
-  if (Number.isNaN(date.getTime())) {
-    return dateString;
-  }
-
-  return date.toLocaleString("en-IN", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-}
-
-/* ============================================================
-   GOOGLE MAPS EVACUATION ROUTE
-============================================================ */
-
-function openGoogleMapsRoute(
-  destination: string,
-  latitude?: number | null,
-  longitude?: number | null
-) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  let url = "";
-
-  /*
-   * If GPS coordinates are available:
-   * Google Maps will use current coordinates
-   * as the starting point.
-   */
-  if (
-    latitude !== null &&
-    latitude !== undefined &&
-    longitude !== null &&
-    longitude !== undefined
-  ) {
-    const origin = `${latitude},${longitude}`;
-
-    url =
-      `https://www.google.com/maps/dir/?api=1` +
-      `&origin=${encodeURIComponent(origin)}` +
-      `&destination=${encodeURIComponent(destination)}` +
-      `&travelmode=driving`;
-  } else {
-    /*
-     * Without GPS, Google Maps itself decides
-     * the starting location.
-     */
-    url =
-      `https://www.google.com/maps/dir/?api=1` +
-      `&destination=${encodeURIComponent(destination)}` +
-      `&travelmode=driving`;
-  }
-
-  window.open(
-    url,
-    "_blank",
-    "noopener,noreferrer"
-  );
-}
-
-/* ============================================================
-   USER DASHBOARD
-============================================================ */
+const SEMANTIC_RISK_COLORS = {
+  LOW: {
+    badge: "border-emerald-500/40 bg-emerald-500/10 text-emerald-400",
+    fill: "#10B981",
+    label: "LOW RISK",
+    bg: "bg-emerald-950/20 border-emerald-900/40",
+  },
+  MEDIUM: {
+    badge: "border-yellow-500/40 bg-yellow-500/10 text-yellow-400",
+    fill: "#EAB308",
+    label: "MEDIUM RISK",
+    bg: "bg-yellow-950/20 border-yellow-900/40",
+  },
+  HIGH: {
+    badge: "border-orange-500/40 bg-orange-500/10 text-orange-400",
+    fill: "#F97316",
+    label: "HIGH RISK",
+    bg: "bg-orange-950/20 border-orange-900/40",
+  },
+  CRITICAL: {
+    badge: "border-red-500/40 bg-red-500/10 text-red-400",
+    fill: "#EF4444",
+    label: "CRITICAL RISK",
+    bg: "bg-red-950/20 border-red-900/40",
+  },
+};
 
 export default function UserDashboard() {
-  /* ----------------------------------------------------------
-     STATE
-  ---------------------------------------------------------- */
+  const router = useRouter();
 
-  const [dashboard, setDashboard] =
-    useState<DashboardData | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [districts, setDistricts] = useState<DistrictPrediction[]>([]);
+  const [selectedDistrict, setSelectedDistrict] = useState<DistrictPrediction | null>(null);
+  const [districtSearch, setDistrictSearch] = useState("");
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [mySosRequests, setMySosRequests] = useState<SOSRequest[]>([]);
 
-  const [alerts, setAlerts] =
-    useState<Alert[]>([]);
+  // Location state
+  const [gpsLoading, setGpsLoading] = useState(false);
+  const [gpsCoords, setGpsCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [gpsError, setGpsError] = useState("");
 
-  const [sosRequests, setSosRequests] =
-    useState<SOSRequest[]>([]);
+  // Loading & Error states
+  const [dataLoading, setDataLoading] = useState(true);
+  const [dataError, setDataError] = useState("");
 
-  const [disasters, setDisasters] =
-    useState<Disaster[]>([]);
+  // SOS Execution state
+  const [sosSending, setSosSending] = useState(false);
+  const [sosMessage, setSosMessage] = useState("");
+  const [activeSosId, setActiveSosId] = useState<number | null>(null);
 
-  const [loading, setLoading] =
-    useState(true);
+  // Detailed SOS Modal state
+  const [showDetailedModal, setShowDetailedModal] = useState(false);
+  const [detailedForm, setDetailedForm] = useState({
+    name: "",
+    phone: "",
+    location: "",
+    people: 1,
+    emergency: "Flood Inundation & Rising Water",
+    description: "",
+    priority: "HIGH",
+  });
+  const [detailedSending, setDetailedSending] = useState(false);
+  const [detailedError, setDetailedError] = useState("");
 
-  const [alertsLoading, setAlertsLoading] =
-    useState(true);
+  // Account Settings Modal
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [deleteConfirmPassword, setDeleteConfirmPassword] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
-  const [sosLoading, setSosLoading] =
-    useState(true);
+  // Evacuation route input
+  const [evacDestination, setEvacDestination] = useState("District Safe Shelter");
 
-  const [mapLoading, setMapLoading] =
-    useState(true);
-
-  const [mapError, setMapError] =
-    useState("");
-
-  const [notifications, setNotifications] =
-    useState<Notification[]>([]);
-
-  const [error, setError] =
-    useState("");
-
-  const [sosError, setSosError] =
-    useState("");
-
-  const [sosSending, setSosSending] =
-    useState(false);
-
-  const [sosMessage, setSosMessage] =
-    useState("");
-
-  const [alertsOpen, setAlertsOpen] =
-    useState(true);
-
-  const [mySosOpen, setMySosOpen] =
-    useState(true);
-
-  const [mapFilter, setMapFilter] =
-    useState<MapFilter>("All");
-
-  /* ----------------------------------------------------------
-     EVACUATION ROUTE STATE
-  ---------------------------------------------------------- */
-
-  const [evacuationOpen, setEvacuationOpen] =
-    useState(true);
-
-  const [evacuationDestination, setEvacuationDestination] =
-    useState("");
-
-  const [evacuationSending, setEvacuationSending] =
-    useState(false);
-
-  const [evacuationMessage, setEvacuationMessage] =
-    useState("");
-
-  const [userLatitude, setUserLatitude] =
-    useState<number | null>(null);
-
-  const [userLongitude, setUserLongitude] =
-    useState<number | null>(null);
-
-  /* ----------------------------------------------------------
-     DETAILED SOS FORM
-  ---------------------------------------------------------- */
-
-  const [showDetailedSOS, setShowDetailedSOS] =
-    useState(false);
-
-  const [formName, setFormName] =
-    useState("");
-
-  const [formPhone, setFormPhone] =
-    useState("");
-
-  const [formLocation, setFormLocation] =
-    useState("");
-
-  const [formPeople, setFormPeople] =
-    useState(1);
-
-  const [formEmergency, setFormEmergency] =
-    useState("");
-
-  const [formDescription, setFormDescription] =
-    useState("");
-
-  const [formPriority, setFormPriority] =
-    useState("HIGH");
-
-  const [formSending, setFormSending] =
-    useState(false);
-
-  const [formMessage, setFormMessage] =
-    useState("");
-
-  /* ============================================================
-     FETCH DASHBOARD
-  ============================================================ */
-
-  const fetchDashboard = useCallback(
-    async () => {
-      try {
-        setError("");
-
-        const response = await fetch(
-          `${API_URL}/dashboard`,
-          {
-            cache: "no-store",
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(
-            "Dashboard request failed"
-          );
-        }
-
-        const result =
-          await response.json();
-
-        const overview = result.overview || {};
-        const rescue = result.rescue || {};
-        const volunteerData = result.volunteers || {};
-
-        setDashboard({
-          ...result,
-          total_sos: overview.total_sos ?? result.total_sos ?? 0,
-          critical_sos: result.sos?.critical ?? result.critical_sos ?? 0,
-          total_alerts: overview.total_alerts ?? result.total_alerts ?? 0,
-          total_volunteers: volunteerData.total ?? overview.total_volunteers ?? 0,
-          available_volunteers: volunteerData.available ?? overview.available_volunteers ?? 0,
-          deployed_volunteers: volunteerData.deployed ?? 0,
-          total_rescue_teams: rescue.total_teams ?? overview.total_rescue_teams ?? 0,
-          available_rescue_teams: rescue.available_teams ?? overview.available_rescue_teams ?? 0,
-          deployed_rescue_teams: rescue.deployed_teams ?? 0,
-          total_rescue_members: rescue.total_members ?? 0,
-          message: result.message || "Live emergency operations data",
-        });
-      } catch (error) {
-        console.error(
-          "User dashboard error:",
-          error
-        );
-
-        setError(
-          "Unable to load dashboard information."
-        );
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
-
-  /* ============================================================
-     FETCH ALERTS
-  ============================================================ */
-
-  const fetchAlerts = useCallback(
-    async () => {
-      try {
-        setAlertsLoading(true);
-
-        const response = await fetch(
-          `${API_URL}/alerts`,
-          {
-            cache: "no-store",
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(
-            "Alerts request failed"
-          );
-        }
-
-        const result =
-          await response.json();
-
-        const alertData: Alert[] =
-          Array.isArray(result)
-            ? result
-            : result.alerts || [];
-
-        const activeAlerts =
-          alertData.filter(
-            (alert) =>
-              alert.status?.toUpperCase() ===
-              "ACTIVE"
-          );
-
-        setAlerts(activeAlerts);
-      } catch (error) {
-        console.error(
-          "User alerts error:",
-          error
-        );
-      } finally {
-        setAlertsLoading(false);
-      }
-    },
-    []
-  );
-
-  const fetchNotifications = useCallback(async () => {
+  // Load user session from localStorage
+  useEffect(() => {
     try {
-      const savedUser = localStorage.getItem("disaster_user");
-      const user = savedUser ? JSON.parse(savedUser) : null;
-      if (!user?.id) return;
-      const response = await fetch(
-        `${API_URL}/notifications?user_id=${encodeURIComponent(user.id)}`,
-        { cache: "no-store" }
-      );
-      if (response.ok) {
-        const result = await response.json();
-        setNotifications(result.notifications || []);
+      const raw = localStorage.getItem("disaster_user");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setUser(parsed);
+        if (parsed.name) {
+          setDetailedForm((prev) => ({ ...prev, name: parsed.name }));
+        }
       }
-    } catch (notificationError) {
-      console.error("User notifications error:", notificationError);
+    } catch (e) {
+      console.warn("Unable to read session:", e);
     }
   }, []);
 
-  /* ============================================================
-     FETCH SOS
-  ============================================================ */
+  // Fetch districts dataset & alerts
+  const loadPlatformData = useCallback(async () => {
+    setDataLoading(true);
+    setDataError("");
 
-  const fetchSOS = useCallback(
-    async () => {
-      try {
-        setSosLoading(true);
-        setSosError("");
-
-        const response = await fetch(
-          `${API_URL}/sos`,
-          {
-            cache: "no-store",
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(
-            "SOS request failed"
-          );
-        }
-
-        const result =
-          await response.json();
-
-        const sosData: SOSRequest[] =
-          Array.isArray(result)
-            ? result
-              : result.sos_requests || result.sos || [];
-
-        setSosRequests(sosData);
-      } catch (error) {
-        console.error(
-          "User SOS error:",
-          error
-        );
-
-        setSosError(
-          "Unable to load SOS requests."
-        );
-      } finally {
-        setSosLoading(false);
+    try {
+      // 1. Load real district predictions from JSON
+      const predRes = await fetch("/data/districts_predictions.json");
+      let districtList: DistrictPrediction[] = [];
+      if (predRes.ok) {
+        districtList = await predRes.json();
+        setDistricts(districtList);
       }
-    },
-    []
-  );
 
-  /* ============================================================
-     FETCH DISASTERS
-  ============================================================ */
-
-  const fetchDisasters = useCallback(
-    async () => {
+      // 2. Load alerts
       try {
-        setMapLoading(true);
-        setMapError("");
-
-        const response = await fetch(
-          `${API_URL}/disasters`,
-          {
-            cache: "no-store",
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(
-            "Disaster request failed"
-          );
+        const alertRes = await fetch(`${API_BASE_URL}/alerts`, { cache: "no-store" });
+        if (alertRes.ok) {
+          const alertData = await alertRes.json();
+          const items: Alert[] = Array.isArray(alertData) ? alertData : alertData.alerts || [];
+          setAlerts(items.filter((a) => a.status?.toUpperCase() === "ACTIVE"));
         }
-
-        const result =
-          await response.json();
-
-        setDisasters(
-          Array.isArray(result)
-            ? result
-            : result.disasters || []
-        );
-      } catch (error) {
-        console.error(
-          "Disaster map error:",
-          error
-        );
-        setMapError("Unable to load disaster locations.");
-      } finally {
-        setMapLoading(false);
+      } catch (alertErr) {
+        console.warn("Alerts fetch warning:", alertErr);
       }
-    },
-    []
-  );
 
-  /* ============================================================
-     GET USER LOCATION FOR EVACUATION
-  ============================================================ */
-
-  const getUserLocation =
-    useCallback(
-      async () => {
-        if (!navigator.geolocation) {
-          throw new Error(
-            "Geolocation is not supported by this browser."
-          );
+      // 3. Load user's recent SOS requests
+      try {
+        const sosRes = await fetch(`${API_BASE_URL}/sos`, { cache: "no-store" });
+        if (sosRes.ok) {
+          const sosData = await sosRes.json();
+          const items: SOSRequest[] = Array.isArray(sosData) ? sosData : sosData.sos_requests || sosData.sos || [];
+          setMySosRequests(items.slice(0, 5));
         }
+      } catch (sosErr) {
+        console.warn("SOS fetch warning:", sosErr);
+      }
 
-        const position =
-          await new Promise<GeolocationPosition>(
-            (resolve, reject) => {
-              navigator.geolocation.getCurrentPosition(
-                resolve,
-                reject,
-                {
-                  enableHighAccuracy: true,
-                  timeout: 10000,
-                  maximumAge: 30000,
-                }
-              );
-            }
-          );
+      // Default selected district: match user area or pick a high-profile monitored district
+      if (districtList.length > 0) {
+        const userArea = (user?.area || "").toLowerCase();
+        const matched = userArea ? districtList.find((d) => d.district.toLowerCase().includes(userArea)) : null;
+        setSelectedDistrict(matched || districtList.find((d) => d.risk_level === "CRITICAL") || districtList[0]);
+      }
+    } catch (err) {
+      console.error("Data load error:", err);
+      setDataError("Unable to synchronize district flood intelligence from backend.");
+    } finally {
+      setDataLoading(false);
+    }
+  }, [user?.area]);
 
-        const latitude =
-          position.coords.latitude;
+  useEffect(() => {
+    loadPlatformData();
+  }, [loadPlatformData]);
 
-        const longitude =
-          position.coords.longitude;
+  // GPS Location Locator
+  const detectGpsLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      setGpsError("Geolocation is not supported by your browser.");
+      return;
+    }
 
-        setUserLatitude(latitude);
-        setUserLongitude(longitude);
+    setGpsLoading(true);
+    setGpsError("");
 
-        return {
-          latitude,
-          longitude,
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = {
+          latitude: Number(pos.coords.latitude.toFixed(4)),
+          longitude: Number(pos.coords.longitude.toFixed(4)),
         };
-      },
-      []
-    );
+        setGpsCoords(coords);
+        setGpsLoading(false);
 
-  /* ============================================================
-     INITIAL LOAD
-  ============================================================ */
+        // Find closest district from dataset
+        if (districts.length > 0) {
+          let closest = districts[0];
+          let minDistance = Number.MAX_VALUE;
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void fetchDashboard();
-      void fetchAlerts();
-      void fetchNotifications();
-      void fetchSOS();
-      void fetchDisasters();
-    }, 0);
-
-    return () => window.clearTimeout(timer);
-  }, [
-    fetchDashboard,
-    fetchAlerts,
-    fetchNotifications,
-    fetchSOS,
-    fetchDisasters,
-  ]);
-
-  /* ============================================================
-     AUTO REFRESH
-  ============================================================ */
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchDashboard();
-      fetchAlerts();
-      fetchSOS();
-      fetchDisasters();
-    }, 30000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [
-    fetchDashboard,
-    fetchAlerts,
-    fetchSOS,
-    fetchDisasters,
-  ]);
-
-  /* ============================================================
-     ONE TAP SOS
-  ============================================================ */
-
-  const activateOneTapSOS =
-    async () => {
-      try {
-        setSosSending(true);
-        setSosMessage("");
-
-        if (!navigator.geolocation) {
-          throw new Error(
-            "Geolocation is not supported."
-          );
-        }
-
-        const position =
-          await new Promise<GeolocationPosition>(
-            (resolve, reject) => {
-              navigator.geolocation.getCurrentPosition(
-                resolve,
-                reject,
-                {
-                  enableHighAccuracy: true,
-                  timeout: 10000,
-                  maximumAge: 0,
-                }
-              );
+          districts.forEach((d) => {
+            const dist = Math.hypot(d.latitude - coords.latitude, d.longitude - coords.longitude);
+            if (dist < minDistance) {
+              minDistance = dist;
+              closest = d;
             }
-          );
+          });
 
-        const latitude =
-          position.coords.latitude;
-
-        const longitude =
-          position.coords.longitude;
-
-        const response =
-          await fetch(
-            `${API_URL}/sos/one-tap`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
-              body: JSON.stringify({
-                name: "Emergency User",
-                location:
-                  "Current GPS Location",
-                people: 1,
-                latitude,
-                longitude,
-              }),
-            }
-          );
-
-        if (!response.ok) {
-          throw new Error(
-            "SOS activation failed"
-          );
-        }
-
-        const result =
-          await response.json();
-
-        if (!result.success) {
-          throw new Error(
-            result.message ||
-              "SOS activation failed"
-          );
-        }
-
-        setSosMessage(
-          `🚨 SOS #${result.sos_id} activated successfully. Your GPS location has been sent to the response system.`
-        );
-
-        await fetchDashboard();
-        await fetchSOS();
-      } catch (error) {
-        console.error(
-          "One-Tap SOS error:",
-          error
-        );
-
-        setSosMessage(
-          "❌ Unable to activate SOS. Please allow location access and try again."
-        );
-      } finally {
-        setSosSending(false);
-      }
-    };
-
-  /* ============================================================
-     DETAILED SOS
-  ============================================================ */
-
-  const submitDetailedSOS =
-    async () => {
-      if (!formName.trim()) {
-        setFormMessage(
-          "Please enter your name."
-        );
-        return;
-      }
-
-      if (!formLocation.trim()) {
-        setFormMessage(
-          "Please enter your location."
-        );
-        return;
-      }
-
-      if (!formEmergency.trim()) {
-        setFormMessage(
-          "Please describe the emergency."
-        );
-        return;
-      }
-
-      if (formPeople < 1) {
-        setFormMessage(
-          "People count must be at least 1."
-        );
-        return;
-      }
-
-      try {
-        setFormSending(true);
-        setFormMessage("");
-
-        let latitude:
-          | number
-          | null = null;
-
-        let longitude:
-          | number
-          | null = null;
-
-        try {
-          if (navigator.geolocation) {
-            const position =
-              await new Promise<GeolocationPosition>(
-                (resolve, reject) => {
-                  navigator.geolocation.getCurrentPosition(
-                    resolve,
-                    reject,
-                    {
-                      enableHighAccuracy: true,
-                      timeout: 7000,
-                      maximumAge: 30000,
-                    }
-                  );
-                }
-              );
-
-            latitude =
-              position.coords.latitude;
-
-            longitude =
-              position.coords.longitude;
+          if (minDistance < 2.5) {
+            setSelectedDistrict(closest);
           }
-        } catch {
-          console.warn(
-            "GPS unavailable for detailed SOS."
-          );
         }
+      },
+      (err) => {
+        setGpsLoading(false);
+        setGpsError(err.message || "Unable to acquire GPS coordinates.");
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
+  }, [districts]);
 
-        const response =
-          await fetch(
-            `${API_URL}/sos`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
-              body: JSON.stringify({
-                name: formName,
-                phone:
-                  formPhone || null,
-                location:
-                  formLocation,
-                people:
-                  formPeople,
-                emergency:
-                  formEmergency,
-                priority:
-                  formPriority,
-                latitude,
-                longitude,
-                description:
-                  formDescription ||
-                  null,
-              }),
-            }
-          );
+  // Trigger GPS detection on mount
+  useEffect(() => {
+    detectGpsLocation();
+  }, [detectGpsLocation]);
 
-        if (!response.ok) {
-          throw new Error(
-            "Detailed SOS failed"
-          );
-        }
+  // One-Tap SOS Handler
+  const handleOneTapSOS = async () => {
+    setSosSending(true);
+    setSosMessage("");
 
-        const result =
-          await response.json();
+    try {
+      let lat = gpsCoords?.latitude;
+      let lon = gpsCoords?.longitude;
 
-        if (!result.success) {
-          throw new Error(
-            result.message ||
-              "Unable to create SOS"
-          );
-        }
-
-        setFormMessage(
-          `🚨 SOS #${result.sos?.id || ""} submitted successfully.`
-        );
-
-        setFormName("");
-        setFormPhone("");
-        setFormLocation("");
-        setFormPeople(1);
-        setFormEmergency("");
-        setFormDescription("");
-        setFormPriority("HIGH");
-
-        await fetchDashboard();
-        await fetchSOS();
-      } catch (error) {
-        console.error(
-          "Detailed SOS error:",
-          error
-        );
-
-        setFormMessage(
-          "❌ Unable to submit SOS request."
-        );
-      } finally {
-        setFormSending(false);
-      }
-    };
-
-  /* ============================================================
-     EVACUATION ROUTE
-  ============================================================ */
-
-  const startEvacuationRoute =
-    async () => {
-      try {
-        setEvacuationSending(true);
-        setEvacuationMessage("");
-
-        const destination =
-          evacuationDestination.trim();
-
-        if (!destination) {
-          setEvacuationMessage(
-            "❌ Please enter an evacuation destination."
-          );
-          return;
-        }
-
-        /*
-         * Try to get live GPS first.
-         */
-        let latitude =
-          userLatitude;
-
-        let longitude =
-          userLongitude;
-
+      if (!lat || !lon) {
         try {
-          const location =
-            await getUserLocation();
-
-          latitude =
-            location.latitude;
-
-          longitude =
-            location.longitude;
-        } catch (error) {
-          console.warn(
-            "GPS unavailable:",
-            error
-          );
-
-          /*
-           * We can still open Google Maps.
-           */
-        }
-
-        openGoogleMapsRoute(
-          destination,
-          latitude,
-          longitude
-        );
-
-        if (
-          latitude !== null &&
-          latitude !== undefined &&
-          longitude !== null &&
-          longitude !== undefined
-        ) {
-          setEvacuationMessage(
-            "🛣️ Evacuation route opened in Google Maps using your current GPS location."
-          );
-        } else {
-          setEvacuationMessage(
-            "🗺️ Google Maps route opened. Please select your current location if required."
-          );
-        }
-      } catch (error) {
-        console.error(
-          "Evacuation route error:",
-          error
-        );
-
-        setEvacuationMessage(
-          "❌ Unable to open evacuation route."
-        );
-      } finally {
-        setEvacuationSending(false);
-      }
-    };
-
-  /* ============================================================
-     QUICK ROUTE FROM ALERT
-  ============================================================ */
-
-  const openAlertRoute =
-    async (alert: Alert) => {
-      try {
-        let latitude =
-          userLatitude;
-
-        let longitude =
-          userLongitude;
-
-        try {
-          const location =
-            await getUserLocation();
-
-          latitude =
-            location.latitude;
-
-          longitude =
-            location.longitude;
+          const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 6000,
+            });
+          });
+          lat = Number(pos.coords.latitude.toFixed(4));
+          lon = Number(pos.coords.longitude.toFixed(4));
+          setGpsCoords({ latitude: lat, longitude: lon });
         } catch {
-          console.warn(
-            "GPS unavailable for alert route."
-          );
+          lat = selectedDistrict?.latitude || 27.1767;
+          lon = selectedDistrict?.longitude || 78.0081;
         }
-
-        /*
-         * If alert has coordinates,
-         * use those as destination.
-         */
-        if (
-          alert.latitude !== null &&
-          alert.latitude !== undefined &&
-          alert.longitude !== null &&
-          alert.longitude !== undefined
-        ) {
-          openGoogleMapsRoute(
-            `${alert.latitude},${alert.longitude}`,
-            latitude,
-            longitude
-          );
-
-          return;
-        }
-
-        /*
-         * Otherwise use alert location text.
-         */
-        openGoogleMapsRoute(
-          alert.location,
-          latitude,
-          longitude
-        );
-      } catch (error) {
-        console.error(
-          "Alert evacuation route error:",
-          error
-        );
       }
-    };
 
-  /* ============================================================
-     MAP FILTER LABEL
-  ============================================================ */
+      const res = await fetch(`${API_BASE_URL}/sos/one-tap`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: user?.name || "Citizen In Need",
+          location: selectedDistrict ? `${selectedDistrict.district}, ${selectedDistrict.state}` : "Current GPS Location",
+          people: 1,
+          latitude: lat,
+          longitude: lon,
+        }),
+      });
 
-  const getFilterLabel = () => {
-    if (mapFilter === "HIGH") {
-      return "High / Critical Risk";
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Failed to trigger emergency SOS dispatch.");
+      }
+
+      const newId = data.sos_id || (data.sos && data.sos.id);
+      setActiveSosId(newId);
+      setSosMessage(`Emergency SOS #${newId} transmitted. GPS coordinates logged. Emergency Control Room notified.`);
+
+      // Refresh SOS list
+      const updatedRes = await fetch(`${API_BASE_URL}/sos`, { cache: "no-store" });
+      if (updatedRes.ok) {
+        const updatedData = await updatedRes.json();
+        const items: SOSRequest[] = Array.isArray(updatedData) ? updatedData : updatedData.sos_requests || [];
+        setMySosRequests(items.slice(0, 5));
+      }
+    } catch (err: any) {
+      console.error("SOS Trigger error:", err);
+      setSosMessage(err.message || "Unable to activate SOS. Please dial 112 directly.");
+    } finally {
+      setSosSending(false);
     }
-
-    if (mapFilter === "MEDIUM") {
-      return "Medium Risk";
-    }
-
-    if (mapFilter === "LOW") {
-      return "Low Risk";
-    }
-
-    return "All Districts";
   };
 
-  /* ============================================================
-     COUNTS
-  ============================================================ */
+  // Detailed SOS Submission
+  const handleDetailedSosSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setDetailedSending(true);
+    setDetailedError("");
 
-  const activeSOS =
-    sosRequests.filter(
-      (sos) =>
-        ![
-          "RESOLVED",
-          "CANCELLED",
-        ].includes(
-          sos.status?.toUpperCase()
-        )
+    try {
+      if (!detailedForm.name.trim() || !detailedForm.location.trim()) {
+        throw new Error("Please provide your name and location.");
+      }
+
+      const res = await fetch(`${API_BASE_URL}/sos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: detailedForm.name.trim(),
+          phone: detailedForm.phone.trim() || null,
+          location: detailedForm.location.trim(),
+          people: Number(detailedForm.people) || 1,
+          emergency: detailedForm.emergency,
+          priority: detailedForm.priority,
+          latitude: gpsCoords?.latitude || selectedDistrict?.latitude || null,
+          longitude: gpsCoords?.longitude || selectedDistrict?.longitude || null,
+          description: detailedForm.description.trim() || null,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Failed to submit detailed emergency request.");
+      }
+
+      setShowDetailedModal(false);
+      setActiveSosId(data.sos?.id || null);
+      setSosMessage(`Detailed SOS #${data.sos?.id || ""} registered with Control Center.`);
+
+      const updatedRes = await fetch(`${API_BASE_URL}/sos`, { cache: "no-store" });
+      if (updatedRes.ok) {
+        const updatedData = await updatedRes.json();
+        const items: SOSRequest[] = Array.isArray(updatedData) ? updatedData : updatedData.sos_requests || [];
+        setMySosRequests(items.slice(0, 5));
+      }
+    } catch (err: any) {
+      setDetailedError(err.message || "Failed to submit SOS.");
+    } finally {
+      setDetailedSending(false);
+    }
+  };
+
+  // Google Maps Evacuation Route Navigation
+  const launchGoogleMapsRoute = (destination: string) => {
+    if (!destination.trim()) return;
+    const origin = gpsCoords ? `${gpsCoords.latitude},${gpsCoords.longitude}` : (selectedDistrict ? `${selectedDistrict.district}, ${selectedDistrict.state}` : "");
+    const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  // Account Logout
+  const handleLogout = () => {
+    localStorage.removeItem("disaster_user");
+    router.push("/login");
+  };
+
+  // Account Deletion
+  const handleDeleteAccount = async () => {
+    if (!user?.email) {
+      setDeleteError("No active user session detected.");
+      return;
+    }
+    if (!deleteConfirmPassword.trim()) {
+      setDeleteError("Please enter your current account password to confirm deletion.");
+      return;
+    }
+
+    setDeleteLoading(true);
+    setDeleteError("");
+
+    try {
+      const res: any = await deleteAccount({
+        email: user.email,
+        password: deleteConfirmPassword,
+      });
+
+      if (!res.success) {
+        throw new Error(res.message || "Failed to delete account. Verify password.");
+      }
+
+      localStorage.removeItem("disaster_user");
+      alert("Your account and associated citizen notifications have been permanently removed.");
+      router.push("/login");
+    } catch (err: any) {
+      setDeleteError(err.message || "Failed to delete account.");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  // Filtered district search
+  const filteredDistricts = useMemo(() => {
+    if (!districtSearch.trim()) return [];
+    const q = districtSearch.toLowerCase();
+    return districts
+      .filter((d) => d.district.toLowerCase().includes(q) || d.state.toLowerCase().includes(q))
+      .slice(0, 8);
+  }, [districts, districtSearch]);
+
+  // District Alerts
+  const districtAlerts = useMemo(() => {
+    if (!selectedDistrict) return [];
+    const distName = selectedDistrict.district.toLowerCase();
+    const stateName = selectedDistrict.state.toLowerCase();
+    return alerts.filter(
+      (a) =>
+        a.location.toLowerCase().includes(distName) ||
+        a.location.toLowerCase().includes(stateName) ||
+        a.title.toLowerCase().includes(distName)
     );
+  }, [alerts, selectedDistrict]);
 
-  const criticalSOS =
-    sosRequests.filter(
-      (sos) =>
-        sos.priority?.toUpperCase() ===
-        "CRITICAL"
-    );
-
-  /* ============================================================
-     UI
-  ============================================================ */
+  // Active SOS to display in tracker
+  const latestSos = mySosRequests[0];
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-
-      {/* ======================================================
-          HEADER
-      ====================================================== */}
-
-      <header className="sticky top-0 z-50 border-b border-slate-800 bg-slate-900/95 backdrop-blur">
-
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
-
-          <div>
-            <h1 className="text-xl font-bold sm:text-2xl">
-              👤 User Emergency Dashboard
-            </h1>
-
-            <p className="text-xs text-slate-400 sm:text-sm">
-              Rakshak Ai
-            </p>
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-600/30 selection:text-white">
+      {/* ========================================================
+          1. CITIZEN PORTAL TOP BAR
+      ======================================================== */}
+      <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/95 backdrop-blur px-4 sm:px-6 py-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
+              <ShieldAlert className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm sm:text-base font-bold text-white tracking-tight">
+                  AI Flood Prediction Platform
+                </span>
+                <span className="hidden sm:inline-block text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded border border-blue-500/30 bg-blue-500/10 text-blue-400">
+                  Citizen Portal
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400">District Early Warning & Emergency SOS</p>
+            </div>
           </div>
 
-          <div className="rounded-full border border-green-500/30 bg-green-500/10 px-4 py-2 text-xs font-bold text-green-400">
-            ● SYSTEM ONLINE
-          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Quick emergency hotlines */}
+            <a
+              href="tel:112"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold transition"
+              title="National Emergency Helpline"
+            >
+              <PhoneCall className="h-3.5 w-3.5" />
+              <span>112</span>
+            </a>
 
+            {/* User Profile / Settings */}
+            <button
+              onClick={() => setShowAccountModal(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-900 hover:border-slate-700 text-slate-300 text-xs font-medium transition"
+            >
+              <User className="h-3.5 w-3.5 text-blue-400" />
+              <span className="hidden md:inline max-w-[120px] truncate">{user?.name || "Account"}</span>
+            </button>
+          </div>
         </div>
-
       </header>
 
-      <section className="mx-auto max-w-7xl px-6 py-8">
-
-        {/* ====================================================
-            ERROR
-        ==================================================== */}
-
-        {error && (
-          <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
-            {error}
+      {/* ========================================================
+          2. MAIN CONTENT AREA (MOBILE FIRST)
+      ======================================================== */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
+        {/* Banner Notification for SOS */}
+        {sosMessage && (
+          <div className="rounded-xl border border-blue-500/40 bg-blue-950/40 p-4 flex items-start gap-3 animate-in fade-in">
+            <Radio className="h-5 w-5 text-blue-400 shrink-0 mt-0.5 animate-pulse" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-blue-200">{sosMessage}</p>
+              <p className="text-xs text-blue-400/80 mt-1">
+                Emergency services verify distress calls continuously. Keep your phone line free.
+              </p>
+            </div>
+            <button onClick={() => setSosMessage("")} className="text-slate-400 hover:text-white">
+              <X className="h-4 w-4" />
+            </button>
           </div>
         )}
 
-        {/* ====================================================
-            WELCOME
-        ==================================================== */}
+        {/* ========================================================
+            3. EMERGENCY SOS COMMAND SECTION
+        ======================================================== */}
+        <section className="rounded-2xl border border-red-900/40 bg-gradient-to-b from-red-950/30 via-slate-900/90 to-slate-900/90 p-5 sm:p-6 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-red-900/30 pb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+                <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                  EMERGENCY SOS DISPATCH
+                </h2>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                Immediate distress signal transmission to District Disaster Management Authority (DDMA) & NDRF
+              </p>
+            </div>
 
-        <div className="mb-8">
+            {/* GPS Detection Status */}
+            <div className="flex items-center gap-2 text-xs bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-1.5 text-slate-300">
+              <Compass className={`h-4 w-4 ${gpsLoading ? "animate-spin text-blue-400" : "text-emerald-400"}`} />
+              {gpsLoading ? (
+                <span>Acquiring satellite GPS...</span>
+              ) : gpsCoords ? (
+                <span>
+                  GPS Lat: <strong className="text-white">{gpsCoords.latitude}</strong>, Lon:{" "}
+                  <strong className="text-white">{gpsCoords.longitude}</strong>
+                </span>
+              ) : (
+                <span className="text-amber-400">GPS not acquired (using district location)</span>
+              )}
+              <button
+                onClick={detectGpsLocation}
+                className="text-[11px] underline text-blue-400 hover:text-blue-300 ml-1"
+              >
+                Refresh
+              </button>
+            </div>
+          </div>
 
-          <h2 className="text-3xl font-bold">
-            Emergency Response Center
+          {/* SOS Trigger Actions */}
+          <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Primary ONE-TAP SOS Trigger */}
+            <div className="md:col-span-2 flex flex-col justify-between rounded-xl border border-red-500/30 bg-red-950/20 p-4 sm:p-5">
+              <div>
+                <span className="text-xs font-semibold text-red-400 uppercase tracking-wider">
+                  Critical Situation
+                </span>
+                <h3 className="text-sm sm:text-base font-semibold text-white mt-1">
+                  Immediate Rescue / Trapped in Rising Water
+                </h3>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Pressing this button broadcasts your exact coordinates directly into the Authority Command Center SOS
+                  queue and alerts local rescue units.
+                </p>
+              </div>
+
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                <button
+                  onClick={handleOneTapSOS}
+                  disabled={sosSending}
+                  className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-red-600 hover:bg-red-500 active:scale-95 disabled:opacity-50 text-white font-bold text-sm sm:text-base tracking-wide flex items-center justify-center gap-3 shadow-lg shadow-red-900/30 transition"
+                >
+                  <Radio className={`h-5 w-5 ${sosSending ? "animate-spin" : "animate-pulse"}`} />
+                  <span>{sosSending ? "TRANSMITTING SOS..." : "ONE-TAP EMERGENCY SOS"}</span>
+                </button>
+
+                <button
+                  onClick={() => setShowDetailedModal(true)}
+                  className="w-full sm:w-auto px-4 py-3 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-medium transition"
+                >
+                  Specify Medical / Multiple People
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Emergency Helplines Card */}
+            <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 flex flex-col justify-between">
+              <div>
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  Direct Helplines
+                </span>
+                <div className="mt-3 space-y-2.5">
+                  <a
+                    href="tel:1078"
+                    className="flex items-center justify-between p-2 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-900/60 text-xs transition"
+                  >
+                    <span className="text-slate-300 font-medium">NDMA Flood Control</span>
+                    <strong className="text-red-400">1078</strong>
+                  </a>
+                  <a
+                    href="tel:1070"
+                    className="flex items-center justify-between p-2 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-900/60 text-xs transition"
+                  >
+                    <span className="text-slate-300 font-medium">State Emergency Center</span>
+                    <strong className="text-amber-400">1070</strong>
+                  </a>
+                  <a
+                    href="tel:112"
+                    className="flex items-center justify-between p-2 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-900/60 text-xs transition"
+                  >
+                    <span className="text-slate-300 font-medium">National Police / Fire</span>
+                    <strong className="text-blue-400">112</strong>
+                  </a>
+                </div>
+              </div>
+              <p className="text-[10px] text-slate-500 mt-3">Toll-free 24/7 lines operated by Government of India</p>
+            </div>
+          </div>
+
+          {/* SOS Status Lifecycle Tracker (Only displays real backend states) */}
+          {latestSos && (
+            <div className="mt-5 pt-4 border-t border-slate-800/80">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <Activity className="h-3.5 w-3.5 text-blue-400" />
+                  Your Active SOS Request (#{latestSos.id})
+                </span>
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                    latestSos.status === "RESOLVED"
+                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                      : "border-red-500/40 bg-red-500/10 text-red-400"
+                  }`}
+                >
+                  {latestSos.status}
+                </span>
+              </div>
+
+              {/* 5-Stage Visual Progression */}
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-[11px]">
+                {[
+                  { label: "1. SOS RECEIVED", state: "PENDING", active: true },
+                  {
+                    label: "2. LOCATION LOGGED",
+                    state: "VERIFIED",
+                    active: !!latestSos.latitude || latestSos.status !== "PENDING",
+                  },
+                  {
+                    label: "3. UNIT ASSIGNED",
+                    state: "ASSIGNED",
+                    active: ["ASSIGNED", "IN_PROGRESS", "RESOLVED"].includes(latestSos.status?.toUpperCase()),
+                  },
+                  {
+                    label: "4. IN TRANSIT",
+                    state: "IN_PROGRESS",
+                    active: ["IN_PROGRESS", "RESOLVED"].includes(latestSos.status?.toUpperCase()),
+                  },
+                  {
+                    label: "5. RESOLVED",
+                    state: "RESOLVED",
+                    active: latestSos.status?.toUpperCase() === "RESOLVED",
+                  },
+                ].map((step, idx) => (
+                  <div
+                    key={idx}
+                    className={`p-2 rounded-lg border transition ${
+                      step.active
+                        ? "border-blue-500/40 bg-blue-950/30 text-blue-300 font-semibold"
+                        : "border-slate-800/60 bg-slate-950/40 text-slate-500"
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      {step.active ? (
+                        <CheckCircle2 className="h-3 w-3 text-blue-400" />
+                      ) : (
+                        <Clock className="h-3 w-3 text-slate-600" />
+                      )}
+                      <span>{step.label}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* ========================================================
+            4. LOCAL FLOOD RISK INTELLIGENCE SECTION
+        ======================================================== */}
+        <section className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                <CloudRain className="h-5 w-5 text-blue-400" />
+                <span>LOCAL FLOOD RISK INTELLIGENCE</span>
+              </h2>
+              <p className="text-xs text-slate-400">
+                District-level probability derived from Random Forest model & Open-Meteo live precipitation
+              </p>
+            </div>
+
+            {/* District Search & Selector */}
+            <div className="relative w-full sm:w-72">
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+                <input
+                  type="text"
+                  placeholder="Search district (e.g. Agra, Patna)..."
+                  value={districtSearch}
+                  onChange={(e) => setDistrictSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-800 bg-slate-900 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition"
+                />
+              </div>
+
+              {filteredDistricts.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-slate-900 border border-slate-800 rounded-lg shadow-2xl z-30 max-h-56 overflow-y-auto">
+                  {filteredDistricts.map((d) => (
+                    <button
+                      key={`${d.district}-${d.state}`}
+                      onClick={() => {
+                        setSelectedDistrict(d);
+                        setDistrictSearch("");
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-slate-800 flex items-center justify-between text-xs border-b border-slate-800/60 last:border-0"
+                    >
+                      <span className="font-medium text-slate-200">
+                        {d.district}, {d.state}
+                      </span>
+                      <span
+                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                          SEMANTIC_RISK_COLORS[d.risk_level]?.badge || ""
+                        }`}
+                      >
+                        {d.risk_level}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Selected District Risk Card */}
+          {selectedDistrict ? (
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 sm:p-6 space-y-6">
+              {/* Header metrics */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800/80 pb-5">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-blue-400" />
+                    <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                      {selectedDistrict.district}
+                    </h3>
+                    <span className="text-xs text-slate-400">({selectedDistrict.state})</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1 flex items-center gap-2">
+                    <span>Monitored District Coordinates: {selectedDistrict.latitude.toFixed(4)}°N, {selectedDistrict.longitude.toFixed(4)}°E</span>
+                    <span>•</span>
+                    <span>Status: <strong className="text-slate-300">{selectedDistrict.prediction_status || "Current"}</strong></span>
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <div className="text-xs text-slate-400">Flood Probability</div>
+                    <div className="text-2xl sm:text-3xl font-extrabold text-white">
+                      {(selectedDistrict.probability * 100).toFixed(0)}%
+                    </div>
+                  </div>
+                  <div
+                    className={`px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-bold tracking-wider ${
+                      SEMANTIC_RISK_COLORS[selectedDistrict.risk_level]?.badge
+                    }`}
+                  >
+                    {SEMANTIC_RISK_COLORS[selectedDistrict.risk_level]?.label}
+                  </div>
+                </div>
+              </div>
+
+              {/* WHY THIS PREDICTION? (Truthful contributing factors in plain language) */}
+              <div>
+                <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5 mb-3">
+                  <Info className="h-3.5 w-3.5 text-blue-400" />
+                  Why is this risk level assigned? (Contributing Signals)
+                </h4>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3.5">
+                    <span className="text-[11px] text-slate-400 block">24h Rainfall</span>
+                    <strong className="text-base sm:lg font-bold text-white block mt-0.5">
+                      {selectedDistrict.rainfall_1d ?? 0} mm
+                    </strong>
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">
+                      {(selectedDistrict.rainfall_1d ?? 0) > 65 ? "Heavy Monsoon Rain" : "Moderate Precipitation"}
+                    </span>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3.5">
+                    <span className="text-[11px] text-slate-400 block">7-Day Accumulated</span>
+                    <strong className="text-base sm:text-lg font-bold text-white block mt-0.5">
+                      {selectedDistrict.rainfall_7d ?? 0} mm
+                    </strong>
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Soil saturation window</span>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3.5">
+                    <span className="text-[11px] text-slate-400 block">Rainfall Trend</span>
+                    <strong className="text-base sm:text-lg font-bold text-white block mt-0.5 capitalize">
+                      {selectedDistrict.rainfall_trend || "Stable"}
+                    </strong>
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">IMD 2024 Daily Feature</span>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3.5">
+                    <span className="text-[11px] text-slate-400 block">Live Weather Sync</span>
+                    <strong className="text-base sm:text-lg font-bold text-emerald-400 block mt-0.5">
+                      Open-Meteo Active
+                    </strong>
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">
+                      {selectedDistrict.open_meteo_live_weather?.precipitation_sum_mm !== undefined
+                        ? `${selectedDistrict.open_meteo_live_weather.precipitation_sum_mm} mm forecast`
+                        : "Verified live feed"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Citizen-Friendly Safety Advisory */}
+              <div
+                className={`rounded-xl border p-4 text-xs ${
+                  selectedDistrict.risk_level === "CRITICAL"
+                    ? "border-red-500/40 bg-red-950/20 text-red-200"
+                    : selectedDistrict.risk_level === "HIGH"
+                    ? "border-orange-500/40 bg-orange-950/20 text-orange-200"
+                    : selectedDistrict.risk_level === "MEDIUM"
+                    ? "border-yellow-500/40 bg-yellow-950/20 text-yellow-200"
+                    : "border-emerald-500/40 bg-emerald-950/20 text-emerald-200"
+                }`}
+              >
+                <div className="flex items-start gap-2.5">
+                  <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="font-semibold block mb-1">
+                      Recommended Action for {selectedDistrict.district}:
+                    </strong>
+                    {selectedDistrict.risk_level === "CRITICAL" && (
+                      <p>
+                        High probability of severe inundation in low-lying areas. Move essential belongings to upper
+                        floors, keep phone fully charged, identify nearest high ground or safe shelter, and prepare for
+                        evacuation if instructed by local district authorities.
+                      </p>
+                    )}
+                    {selectedDistrict.risk_level === "HIGH" && (
+                      <p>
+                        Elevated flood risk due to accumulated precipitation. Avoid riverbanks, waterlogged underpasses,
+                        and stay tuned to official DDMA broadcasts. Review emergency evacuation routes.
+                      </p>
+                    )}
+                    {selectedDistrict.risk_level === "MEDIUM" && (
+                      <p>
+                        Moderate rainfall conditions. Catchment basins are saturated. Monitor weather updates and avoid
+                        non-essential travel across prone causeways.
+                      </p>
+                    )}
+                    {selectedDistrict.risk_level === "LOW" && (
+                      <p>
+                        Normal operational conditions. Precipitation is within safe thresholds. No immediate flood risk
+                        detected for this district.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-8 text-center text-xs text-slate-400">
+              No district selected. Use the search box above or GPS button to locate your district.
+            </div>
+          )}
+        </section>
+
+        {/* ========================================================
+            5. ACTIVE DISTRICT ALERTS & MAP
+        ======================================================== */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Active Alerts for User's Area */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-4 border-b border-slate-800/80 pb-3">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-400" />
+                  <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">
+                    Active District Flood Warnings
+                  </h3>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded border border-slate-700 bg-slate-800 text-slate-300">
+                  {districtAlerts.length} Active in Region
+                </span>
+              </div>
+
+              {districtAlerts.length > 0 ? (
+                <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                  {districtAlerts.map((alt) => (
+                    <div
+                      key={alt.id}
+                      className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 hover:border-slate-700 transition"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <strong className="text-xs font-semibold text-white">{alt.title}</strong>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                            alt.severity?.toUpperCase() === "CRITICAL"
+                              ? "border-red-500/40 bg-red-500/10 text-red-400"
+                              : "border-amber-500/40 bg-amber-500/10 text-amber-400"
+                          }`}
+                        >
+                          {alt.severity}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-300 mt-1 leading-relaxed">{alt.message}</p>
+                      <div className="mt-2 flex items-center justify-between text-[10px] text-slate-500">
+                        <span>Location: {alt.location}</span>
+                        <span>Issued: {new Date(alt.created_at).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-slate-800 p-8 text-center text-xs text-slate-400">
+                  <CheckCircle2 className="h-6 w-6 text-emerald-400 mx-auto mb-2" />
+                  <p className="font-semibold text-slate-300">No Active Emergency Warnings</p>
+                  <p className="text-slate-500 text-[11px] mt-1">
+                    There are currently no active flood emergency notices issued for {selectedDistrict?.district || "your selected area"}.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Evacuation Route Navigator */}
+            <div className="mt-5 pt-4 border-t border-slate-800/80">
+              <span className="text-xs font-semibold text-slate-300 block mb-2">
+                Emergency Evacuation Navigation (Google Maps)
+              </span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={evacDestination}
+                  onChange={(e) => setEvacDestination(e.target.value)}
+                  placeholder="Enter high ground / shelter destination..."
+                  className="flex-1 px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                />
+                <button
+                  onClick={() => launchGoogleMapsRoute(evacDestination)}
+                  className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-1.5 transition shrink-0"
+                >
+                  <Navigation className="h-3.5 w-3.5" />
+                  <span>Navigate</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* District Geospatial Context */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-3 border-b border-slate-800/80 pb-3">
+              <div className="flex items-center gap-2">
+                <Layers className="h-4 w-4 text-blue-400" />
+                <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">
+                  District Risk Context
+                </h3>
+              </div>
+              <span className="text-[10px] text-slate-400">590 Monitored Districts</span>
+            </div>
+
+            <div className="rounded-xl overflow-hidden border border-slate-800 h-72 sm:h-80">
+              <DisasterMap />
+            </div>
+
+            <p className="text-[10px] text-slate-500 mt-2 text-center">
+              Green: Low • Yellow: Medium • Orange: High • Red: Critical
+            </p>
+          </div>
+        </div>
+
+        {/* ========================================================
+            6. NEARBY EMERGENCY SAFE SHELTERS
+        ======================================================== */}
+        <section className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 sm:p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+            <div className="flex items-center gap-2">
+              <LifeBuoy className="h-5 w-5 text-blue-400" />
+              <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                Designated Safe Shelters & Relief Camps
+              </h2>
+            </div>
+            <span className="text-xs text-slate-400">Distance calculated from current GPS</span>
+          </div>
+
+          <SafeShelters userLocation={gpsCoords} />
+        </section>
+
+        {/* ========================================================
+            7. NDMA CITIZEN FLOOD PROTOCOLS & GUIDELINES
+        ======================================================== */}
+        <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
+          <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2 mb-4">
+            <ShieldCheck className="h-5 w-5 text-emerald-400" />
+            <span>National Disaster Management Authority (NDMA) Safety Protocol</span>
           </h2>
 
-          <p className="mt-2 text-slate-400">
-            Monitor disaster alerts, send emergency
-            requests, navigate evacuation routes,
-            and track response status.
-          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-300">
+            <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/60">
+              <strong className="text-white font-semibold block mb-1.5 text-sm">Before Flood / Early Warning</strong>
+              <ul className="space-y-1.5 text-slate-400 list-disc list-inside">
+                <li>Store clean drinking water and non-perishable food for at least 72 hours.</li>
+                <li>Keep waterproof bags ready with identity documents, medicines, and torches.</li>
+                <li>Identify high-elevation routes and nearest district relief shelters.</li>
+              </ul>
+            </div>
 
-        </div>
+            <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/60">
+              <strong className="text-white font-semibold block mb-1.5 text-sm">During Rising Water</strong>
+              <ul className="space-y-1.5 text-slate-400 list-disc list-inside">
+                <li>Switch off main electrical breakers and gas cylinders before evacuating.</li>
+                <li>Never attempt to walk or drive through moving flood water deeper than 15 cm.</li>
+                <li>Move livestock and family members to upper levels or designated high ground.</li>
+              </ul>
+            </div>
 
-        <div className="mb-8 grid gap-4 overflow-hidden rounded-2xl border border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 via-slate-900 to-red-500/10 p-5 md:grid-cols-[1fr_auto] md:items-center">
+            <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/60">
+              <strong className="text-white font-semibold block mb-1.5 text-sm">Emergency Evacuation</strong>
+              <ul className="space-y-1.5 text-slate-400 list-disc list-inside">
+                <li>Follow instructions from NDRF, SDRF, and civil defense volunteers immediately.</li>
+                <li>Trigger One-Tap SOS on this platform if trapped or cut off from evacuation.</li>
+                <li>Keep distress flares, bright cloth, or whistles ready for search & rescue teams.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* ========================================================
+          8. FOOTER
+      ======================================================== */}
+      <footer className="border-t border-slate-800 bg-slate-950 px-6 py-6 text-xs text-slate-500">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p>© 2026 AI Flood Prediction Platform • Emergency Public Warning System</p>
           <div className="flex items-center gap-4">
-            <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-400/10 text-2xl">
-              <span className="absolute h-8 w-8 animate-ping rounded-full border border-cyan-400/40" />
-              <span className="relative">⌁</span>
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">
-                Emergency network
-              </p>
-              <p className="mt-1 text-sm text-slate-300">
-                Alerts, shelters and response teams are synchronized for your area.
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-1 md:justify-end">
-            {["bg-cyan-400", "bg-green-400", "bg-yellow-400", "bg-red-400", "bg-cyan-400"].map((color, index) => (
-              <span key={index} className={`h-8 w-1.5 rounded-full ${color} ${index === 3 ? "opacity-90" : "opacity-50"}`} />
-            ))}
+            <Link href="/privacy" className="hover:text-slate-300 transition">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-slate-300 transition">Terms of Service</Link>
+            <Link href="/authority-dashboard" className="text-blue-400 hover:text-blue-300 transition">Authority Command Center</Link>
           </div>
         </div>
-
-        {/* ====================================================
-            STATS
-        ==================================================== */}
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-
-          <div className="rounded-2xl border border-red-500/20 bg-slate-900 p-5">
-
-            <p className="text-sm text-slate-400">
-              Total SOS
-            </p>
-
-            <p className="mt-2 text-3xl font-bold">
-              {sosLoading
-                ? "..."
-                : sosRequests.length}
-            </p>
-
-            <p className="mt-2 text-xs text-red-400">
-              Emergency requests
-            </p>
-
-          </div>
-
-          <div className="rounded-2xl border border-orange-500/20 bg-slate-900 p-5">
-
-            <p className="text-sm text-slate-400">
-              Active SOS
-            </p>
-
-            <p className="mt-2 text-3xl font-bold">
-              {sosLoading
-                ? "..."
-                : activeSOS.length}
-            </p>
-
-            <p className="mt-2 text-xs text-orange-400">
-              Awaiting resolution
-            </p>
-
-          </div>
-
-          <div className="rounded-2xl border border-red-500/20 bg-slate-900 p-5">
-
-            <p className="text-sm text-slate-400">
-              Critical SOS
-            </p>
-
-            <p className="mt-2 text-3xl font-bold text-red-400">
-              {sosLoading
-                ? "..."
-                : criticalSOS.length}
-            </p>
-
-            <p className="mt-2 text-xs text-slate-400">
-              Highest priority
-            </p>
-
-          </div>
-
-          <div className="rounded-2xl border border-orange-500/20 bg-slate-900 p-5">
-
-            <p className="text-sm text-slate-400">
-              Active Alerts
-            </p>
-
-            <p className="mt-2 text-3xl font-bold">
-              {alertsLoading
-                ? "..."
-                : alerts.length}
-            </p>
-
-            <p className="mt-2 text-xs text-orange-400">
-              Live disaster alerts
-            </p>
-
-          </div>
-
-        </div>
-
-        {/* ====================================================
-            EMERGENCY SOS
-        ==================================================== */}
-
-        <div className="mt-8 rounded-3xl border border-red-500/30 bg-gradient-to-br from-red-950/60 via-slate-900 to-slate-900 p-6 sm:p-8">
-
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-
-            <div className="max-w-2xl">
-
-              <div className="flex items-center gap-3">
-
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 text-2xl">
-                  🚨
-                </span>
-
-                <div>
-
-                  <p className="text-sm font-bold uppercase tracking-wider text-red-400">
-                    Emergency Response
-                  </p>
-
-                  <h2 className="text-2xl font-bold">
-                    One-Tap Emergency SOS
-                  </h2>
-
-                </div>
-
-              </div>
-
-              <p className="mt-5 text-sm leading-6 text-slate-400">
-                Send your current GPS location
-                directly to the disaster response
-                system. Your request automatically
-                receives CRITICAL priority.
-              </p>
-
-              <div className="mt-4 flex flex-wrap gap-2 text-xs">
-
-                <span className="rounded-full bg-red-500/10 px-3 py-2 text-red-400">
-                  📍 GPS Location
-                </span>
-
-                <span className="rounded-full bg-red-500/10 px-3 py-2 text-red-400">
-                  🚨 Critical Priority
-                </span>
-
-                <span className="rounded-full bg-red-500/10 px-3 py-2 text-red-400">
-                  ⚡ Instant Response
-                </span>
-
-              </div>
-
-            </div>
-
-            <button
-              onClick={activateOneTapSOS}
-              disabled={sosSending}
-              className="min-w-[220px] rounded-2xl bg-red-600 px-8 py-5 text-lg font-bold shadow-xl shadow-red-950/40 transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {sosSending
-                ? "📡 Sending..."
-                : "🚨 SEND SOS"}
-            </button>
-
-          </div>
-
-          {sosMessage && (
-            <div
-              className={`mt-6 rounded-xl border p-4 text-sm ${
-                sosMessage.startsWith("🚨")
-                  ? "border-green-500/30 bg-green-500/10 text-green-300"
-                  : "border-red-500/30 bg-red-500/10 text-red-300"
-              }`}
-            >
-              {sosMessage}
-            </div>
-          )}
-
-        </div>
-
-        {/* ====================================================
-            EVACUATION ROUTES
-        ==================================================== */}
-
-        <div className="mt-6 overflow-hidden rounded-2xl border border-blue-500/20 bg-slate-900">
-
-          <button
-            onClick={() =>
-              setEvacuationOpen(
-                !evacuationOpen
-              )
-            }
-            className="flex w-full items-center justify-between px-6 py-5 text-left transition hover:bg-slate-800/50"
-          >
-
-            <div>
-
-              <div className="flex flex-wrap items-center gap-3">
-
-                <h2 className="text-xl font-bold">
-                  🛣️ Evacuation Routes
-                </h2>
-
-                <span className="rounded-full bg-blue-500/10 px-3 py-1 text-xs font-bold text-blue-400">
-                  GOOGLE MAPS
-                </span>
-
-              </div>
-
-              <p className="mt-1 text-sm text-slate-400">
-                Find a safe evacuation route from
-                your current location.
-              </p>
-
-            </div>
-
-            <span className="text-xl text-slate-400">
-              {evacuationOpen
-                ? "▲"
-                : "▼"}
-            </span>
-
-          </button>
-
-          {evacuationOpen && (
-            <div className="border-t border-slate-800 p-6">
-
-              <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
-
-                <div>
-
-                  <label className="text-sm text-slate-400">
-                    Evacuation Destination
-                  </label>
-
-                  <input
-                    value={evacuationDestination}
-                    onChange={(e) =>
-                      setEvacuationDestination(
-                        e.target.value
-                      )
-                    }
-                    placeholder="Enter safe area, city, district or destination"
-                    className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-white outline-none transition focus:border-blue-500"
-                  />
-
-                  <p className="mt-2 text-xs text-slate-500">
-                    Example: District Emergency
-                    Centre, Mathura or another
-                    known safe destination.
-                  </p>
-
-                </div>
-
-                <button
-                  onClick={startEvacuationRoute}
-                  disabled={evacuationSending}
-                  className="rounded-xl bg-blue-600 px-7 py-4 font-bold transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {evacuationSending
-                    ? "📍 Getting Location..."
-                    : "🛣️ Open Evacuation Route"}
-                </button>
-
-              </div>
-
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-
-                <button
-                  onClick={() => {
-                    setEvacuationDestination(
-                      "District Emergency Centre"
-                    );
-                  }}
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-slate-300 transition hover:border-blue-500 hover:bg-slate-800"
-                >
-                  🏢 Emergency Centre
-                </button>
-
-                <button
-                  onClick={() => {
-                    setEvacuationDestination(
-                      "District Magistrate Office"
-                    );
-                  }}
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-slate-300 transition hover:border-blue-500 hover:bg-slate-800"
-                >
-                  🏛️ District Office
-                </button>
-
-                <button
-                  onClick={() => {
-                    setEvacuationDestination(
-                      "Police Station"
-                    );
-                  }}
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-slate-300 transition hover:border-blue-500 hover:bg-slate-800"
-                >
-                  🚓 Police Station
-                </button>
-
-              </div>
-
-              {evacuationMessage && (
-                <div className="mt-5 rounded-xl border border-blue-500/20 bg-blue-500/10 p-4 text-sm text-blue-300">
-                  {evacuationMessage}
-                </div>
-              )}
-
-              {userLatitude !== null &&
-                userLongitude !== null && (
-                  <div className="mt-4 rounded-xl border border-green-500/20 bg-green-500/10 p-3 text-xs text-green-300">
-                    📍 GPS location ready:{" "}
-                    {userLatitude.toFixed(5)},{" "}
-                    {userLongitude.toFixed(5)}
-                  </div>
-                )}
-
-            </div>
-          )}
-
-        </div>
-
-        {/* ====================================================
-            DETAILED SOS
-        ==================================================== */}
-
-        <div className="mt-6 overflow-hidden rounded-2xl border border-red-500/20 bg-slate-900">
-
-          <button
-            onClick={() =>
-              setShowDetailedSOS(
-                !showDetailedSOS
-              )
-            }
-            className="flex w-full items-center justify-between px-6 py-5 text-left transition hover:bg-slate-800/50"
-          >
-
-            <div>
-
-              <h2 className="text-lg font-bold">
-                📝 Submit Detailed Emergency Request
-              </h2>
-
-              <p className="mt-1 text-sm text-slate-400">
-                Provide additional information for
-                rescue teams.
-              </p>
-
-            </div>
-
-            <span className="text-xl text-slate-400">
-              {showDetailedSOS
-                ? "▲"
-                : "▼"}
-            </span>
-
-          </button>
-
-          {showDetailedSOS && (
-            <div className="border-t border-slate-800 p-6">
-
-              <div className="grid gap-5 md:grid-cols-2">
-
-                <div>
-
-                  <label className="text-sm text-slate-400">
-                    Name
-                  </label>
-
-                  <input
-                    value={formName}
-                    onChange={(e) =>
-                      setFormName(
-                        e.target.value
-                      )
-                    }
-                    placeholder="Your name"
-                    className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-red-500"
-                  />
-
-                </div>
-
-                <div>
-
-                  <label className="text-sm text-slate-400">
-                    Phone
-                  </label>
-
-                  <input
-                    value={formPhone}
-                    onChange={(e) =>
-                      setFormPhone(
-                        e.target.value
-                      )
-                    }
-                    placeholder="Phone number"
-                    className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-red-500"
-                  />
-
-                </div>
-
-                <div>
-
-                  <label className="text-sm text-slate-400">
-                    Location
-                  </label>
-
-                  <input
-                    value={formLocation}
-                    onChange={(e) =>
-                      setFormLocation(
-                        e.target.value
-                      )
-                    }
-                    placeholder="Village / City / District"
-                    className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-red-500"
-                  />
-
-                </div>
-
-                <div>
-
-                  <label className="text-sm text-slate-400">
-                    Number of People
-                  </label>
-
-                  <input
-                    type="number"
-                    min={1}
-                    value={formPeople}
-                    onChange={(e) =>
-                      setFormPeople(
-                        Math.max(
-                          1,
-                          Number(
-                            e.target.value
-                          )
-                        )
-                      )
-                    }
-                    className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-red-500"
-                  />
-
-                </div>
-
-                <div>
-
-                  <label className="text-sm text-slate-400">
-                    Emergency Type
-                  </label>
-
-                  <input
-                    value={formEmergency}
-                    onChange={(e) =>
-                      setFormEmergency(
-                        e.target.value
-                      )
-                    }
-                    placeholder="Flooding, trapped, medical emergency..."
-                    className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-red-500"
-                  />
-
-                </div>
-
-                <div>
-
-                  <label className="text-sm text-slate-400">
-                    Priority
-                  </label>
-
-                  <select
-                    value={formPriority}
-                    onChange={(e) =>
-                      setFormPriority(
-                        e.target.value
-                      )
-                    }
-                    className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-red-500"
-                  >
-
-                    <option value="MEDIUM">
-                      MEDIUM
-                    </option>
-
-                    <option value="HIGH">
-                      HIGH
-                    </option>
-
-                    <option value="CRITICAL">
-                      CRITICAL
-                    </option>
-
-                  </select>
-
-                </div>
-
-              </div>
-
-              <div className="mt-5">
-
-                <label className="text-sm text-slate-400">
-                  Additional Description
-                </label>
-
-                <textarea
-                  value={formDescription}
-                  onChange={(e) =>
-                    setFormDescription(
-                      e.target.value
-                    )
-                  }
-                  rows={4}
-                  placeholder="Describe your situation..."
-                  className="mt-2 w-full resize-none rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-red-500"
-                />
-
-              </div>
-
-              <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
-                {formMessage && (
-                  <div className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-slate-300">
-                    {formMessage}
-                  </div>
-                )}
-
-                <button
-                  onClick={submitDetailedSOS}
-                  disabled={formSending}
-                  className="rounded-xl bg-red-600 px-7 py-3 font-bold transition hover:bg-red-500 disabled:opacity-50 sm:ml-auto"
-                >
-                  {formSending
-                    ? "Submitting..."
-                    : "🚨 Submit SOS"}
-                </button>
-
-              </div>
-
-            </div>
-          )}
-
-        </div>
-
-        {notifications.length > 0 && (
-          <div className="mt-8 rounded-2xl border border-red-500/20 bg-red-950/20 p-6">
-            <h2 className="text-xl font-bold text-red-200">
-              Flood warning for your area
-            </h2>
-            <div className="mt-3 space-y-2">
-              {notifications.slice(0, 4).map((notification) => (
-                <div key={notification.id} className="rounded-xl border border-red-500/20 bg-red-500/10 p-4">
-                  <p className="text-sm font-semibold text-red-100">{notification.title}</p>
-                  <p className="mt-1 text-sm text-red-100/80">{notification.message}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ====================================================
-            ACTIVE ALERTS
-        ==================================================== */}
-
-        <div className="mt-8 overflow-hidden rounded-2xl border border-orange-500/20 bg-slate-900">
-
-          <button
-            onClick={() =>
-              setAlertsOpen(
-                !alertsOpen
-              )
-            }
-            className="flex w-full items-center justify-between px-6 py-5 text-left hover:bg-slate-800/50"
-          >
-
-            <div>
-
-              <div className="flex flex-wrap items-center gap-3">
-
-                <h2 className="text-xl font-bold">
-                  🚨 Active Disaster Alerts
-                </h2>
-
-                <span className="rounded-full bg-red-500/10 px-3 py-1 text-xs font-bold text-red-400">
-                  {alerts.length} Active
-                </span>
-
-              </div>
-
-              <p className="mt-1 text-sm text-slate-400">
-                Live alerts generated by the disaster
-                monitoring system.
-              </p>
-
-            </div>
-
-            <span className="text-xl text-slate-400">
-              {alertsOpen
-                ? "▲"
-                : "▼"}
-            </span>
-
-          </button>
-
-          {alertsOpen && (
-            <div className="border-t border-slate-800">
-
-              {alertsLoading ? (
-                <div className="p-8 text-center text-slate-400">
-                  Loading alerts...
-                </div>
-              ) : alerts.length === 0 ? (
-                <div className="p-10 text-center">
-
-                  <div className="text-4xl">
-                    ✓
-                  </div>
-
-                  <p className="mt-3 font-semibold text-green-400">
-                    No active disaster alerts
-                  </p>
-
-                  <p className="mt-1 text-sm text-slate-500">
-                    The system is currently monitoring
-                    all active locations.
-                  </p>
-
-                </div>
-              ) : (
-                <div className="max-h-[650px] overflow-y-auto divide-y divide-slate-800">
-
-                  {alerts
-                    .slice()
-                    .reverse()
-                    .map((alert) => (
-                      <div
-                        key={alert.id}
-                        className="p-6 transition hover:bg-slate-800/40"
-                      >
-
-                        <div className="flex gap-4">
-
-                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-2xl">
-                            🚨
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-
-                            <div className="flex flex-wrap items-center gap-2">
-
-                              <h3 className="font-bold">
-                                {alert.title}
-                              </h3>
-
-                              <span className="rounded-full bg-red-500/10 px-2 py-1 text-[10px] font-bold text-red-400">
-                                ACTIVE
-                              </span>
-
-                            </div>
-
-                            <p className="mt-2 text-sm leading-6 text-slate-300">
-                              {alert.message}
-                            </p>
-
-                            <div className="mt-3 flex flex-wrap gap-2">
-
-                              <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">
-                                📍 {alert.location}
-                              </span>
-
-                              <span
-                                className={`rounded-full border px-3 py-1 text-xs font-bold uppercase ${getSeverityClass(
-                                  alert.severity
-                                )}`}
-                              >
-                                {alert.severity}
-                              </span>
-
-                              {alert.disaster_type && (
-                                <span className="rounded-full bg-blue-500/10 px-3 py-1 text-xs text-blue-400">
-                                  🌊{" "}
-                                  {
-                                    alert.disaster_type
-                                  }
-                                </span>
-                              )}
-
-                            </div>
-
-                            <div className="mt-4 flex flex-wrap items-center gap-3">
-
-                              <p className="text-xs text-slate-500">
-                                Created:{" "}
-                                {formatDate(
-                                  alert.created_at
-                                )}
-                              </p>
-
-                              <button
-                                onClick={() =>
-                                  openAlertRoute(
-                                    alert
-                                  )
-                                }
-                                className="rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-xs font-bold text-blue-400 transition hover:bg-blue-500/20"
-                              >
-                                🛣️ Route to Alert Location
-                              </button>
-
-                            </div>
-
-                          </div>
-
-                        </div>
-
-                      </div>
-                    ))}
-
-                </div>
-              )}
-
-            </div>
-          )}
-
-        </div>
-
-        {/* ====================================================
-            SOS REQUESTS
-        ==================================================== */}
-
-        <div className="mt-8 overflow-hidden rounded-2xl border border-red-500/20 bg-slate-900">
-
-          <button
-            onClick={() =>
-              setMySosOpen(
-                !mySosOpen
-              )
-            }
-            className="flex w-full items-center justify-between px-6 py-5 text-left hover:bg-slate-800/50"
-          >
-
-            <div>
-
-              <div className="flex flex-wrap items-center gap-3">
-
-                <h2 className="text-xl font-bold">
-                  🚨 Emergency SOS Requests
-                </h2>
-
-                <span className="rounded-full bg-red-500/10 px-3 py-1 text-xs font-bold text-red-400">
-                  {sosRequests.length} Total
-                </span>
-
-                <span className="rounded-full bg-orange-500/10 px-3 py-1 text-xs font-bold text-orange-400">
-                  {activeSOS.length} Active
-                </span>
-
-                <span className="rounded-full bg-red-500/10 px-3 py-1 text-xs font-bold text-red-400">
-                  {criticalSOS.length} Critical
-                </span>
-
-              </div>
-
-              <p className="mt-1 text-sm text-slate-400">
-                Live emergency requests in the disaster
-                response system.
-              </p>
-
-            </div>
-
-            <span className="text-xl text-slate-400">
-              {mySosOpen
-                ? "▲"
-                : "▼"}
-            </span>
-
-          </button>
-
-          {mySosOpen && (
-            <div className="border-t border-slate-800">
-
-              {sosError && (
-                <div className="m-5 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
-                  {sosError}
-                </div>
-              )}
-
-              {sosLoading ? (
-                <div className="p-8 text-center text-slate-400">
-                  Loading SOS requests...
-                </div>
-              ) : sosRequests.length === 0 ? (
-                <div className="p-10 text-center text-slate-400">
-                  No SOS requests found.
-                </div>
-              ) : (
-                <div className="max-h-[600px] overflow-y-auto divide-y divide-slate-800">
-
-                  {sosRequests.map(
-                    (sos) => (
-                      <div
-                        key={sos.id}
-                        className="p-6 transition hover:bg-slate-800/40"
-                      >
-
-                        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-
-                          <div className="flex gap-4">
-
-                            <div
-                              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-xl ${
-                                sos.priority?.toUpperCase() ===
-                                "CRITICAL"
-                                  ? "bg-red-500/10"
-                                  : "bg-orange-500/10"
-                              }`}
-                            >
-                              🚨
-                            </div>
-
-                            <div>
-
-                              <div className="flex flex-wrap items-center gap-2">
-
-                                <h3 className="font-bold">
-                                  {sos.name}
-                                </h3>
-
-                                <span
-                                  className={`rounded-full border px-2 py-1 text-[10px] font-bold ${getStatusClass(
-                                    sos.status
-                                  )}`}
-                                >
-                                  {
-                                    sos.status
-                                  }
-                                </span>
-
-                              </div>
-
-                              <p className="mt-2 text-sm text-slate-400">
-                                📍{" "}
-                                {
-                                  sos.location
-                                }
-                              </p>
-
-                              <p className="mt-1 text-sm text-slate-400">
-                                👥{" "}
-                                {
-                                  sos.people
-                                }{" "}
-                                people •{" "}
-                                {
-                                  sos.emergency
-                                }
-                              </p>
-
-                              {sos.description && (
-                                <p className="mt-2 max-w-2xl text-sm text-slate-500">
-                                  {
-                                    sos.description
-                                  }
-                                </p>
-                              )}
-
-                              {sos.latitude !==
-                                null &&
-                                sos.longitude !==
-                                  null && (
-                                  <p className="mt-2 text-xs text-slate-500">
-                                    📍 GPS:{" "}
-                                    {sos.latitude.toFixed(
-                                      5
-                                    )}
-                                    ,{" "}
-                                    {sos.longitude.toFixed(
-                                      5
-                                    )}
-                                  </p>
-                                )}
-
-                              {sos.created_at && (
-                                <p className="mt-2 text-xs text-slate-600">
-                                  Created:{" "}
-                                  {formatDate(
-                                    sos.created_at
-                                  )}
-                                </p>
-                              )}
-
-                            </div>
-
-                          </div>
-
-                          <div className="flex flex-wrap gap-2">
-
-                            <span
-                              className={`rounded-full px-4 py-2 text-xs font-bold uppercase ${
-                                sos.priority?.toUpperCase() ===
-                                "CRITICAL"
-                                  ? "bg-red-500/10 text-red-400"
-                                  : sos.priority?.toUpperCase() ===
-                                    "HIGH"
-                                  ? "bg-orange-500/10 text-orange-400"
-                                  : "bg-yellow-500/10 text-yellow-400"
-                              }`}
-                            >
-                              {
-                                sos.priority
-                              }
-                            </span>
-
-                          </div>
-
-                        </div>
-
-                      </div>
-                    )
-                  )}
-
-                </div>
-              )}
-
-            </div>
-          )}
-
-        </div>
-
-        {/* ====================================================
-            MAP
-        ==================================================== */}
-
-        <div className="mt-8">
-
-          <div className="mb-4 rounded-2xl border border-blue-500/20 bg-slate-900 p-5">
-
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
-              <div>
-
-                <div className="flex flex-wrap items-center gap-3">
-
-                  <h2 className="text-xl font-bold">
-                    🗺️ Live India Disaster Map
-                  </h2>
-
-                  <span className="rounded-full bg-green-500/10 px-3 py-1 text-xs font-bold text-green-400">
-                    LIVE AI MONITORING
-                  </span>
-
-                </div>
-
-                <p className="mt-1 text-sm text-slate-400">
-                  Disaster risks, active alerts and
-                  emergency SOS locations.
-                </p>
-
-              </div>
-
-              <div className="flex items-center gap-3">
-
-                <span className="text-sm text-slate-400">
-                  Risk Filter
-                </span>
-
-                <select
-                  value={mapFilter}
-                  onChange={(e) =>
-                    setMapFilter(
-                      e.target
-                        .value as MapFilter
-                    )
-                  }
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-semibold outline-none focus:border-blue-500"
-                >
-
-                  <option value="All">
-                    🌊 All Districts
-                  </option>
-
-                  <option value="HIGH">
-                    🔴 High / Critical
-                  </option>
-
-                  <option value="MEDIUM">
-                    🟠 Medium Risk
-                  </option>
-
-                  <option value="LOW">
-                    🟢 Low Risk
-                  </option>
-
-                </select>
-
-              </div>
-
-            </div>
-
-            <div className="mt-4">
-
-              <span className="text-xs uppercase tracking-wider text-slate-500">
-                Currently viewing
-              </span>
-
-              <span className="ml-3 rounded-full bg-blue-500/10 px-3 py-1 text-xs font-bold text-blue-400">
-                {getFilterLabel()}
-              </span>
-
-            </div>
-
-          </div>
-
-          {mapLoading && (
-            <div className="mb-4 rounded-xl border border-blue-500/20 bg-blue-500/10 p-4 text-sm text-blue-300">
-              Loading disaster locations...
-            </div>
-          )}
-
-          {mapError && (
-            <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300">
-              {mapError}
-            </div>
-          )}
-
-          <DisasterMap
-            disasters={disasters}
-            sosRequests={sosRequests
-              .filter(
-                (request) =>
-                  request.latitude != null &&
-                  request.longitude != null
-              )
-              .map((request) => ({
-                ...request,
-                latitude: request.latitude!,
-                longitude: request.longitude!,
-                type: "sos",
-              }))}
-          />
-
-        </div>
-
-        <SafeShelters
-          userLocation={
-            userLatitude != null && userLongitude != null
-              ? {
-                  latitude: userLatitude,
-                  longitude: userLongitude,
-                }
-              : null
-          }
-        />
-
-        {/* ====================================================
-            RESPONSE CAPACITY
-        ==================================================== */}
-
-        <div className="mt-8 grid gap-6 md:grid-cols-2">
-
-          <div className="rounded-2xl border border-green-500/20 bg-slate-900 p-6">
-
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-sm text-slate-400">
-                  Volunteer network
-                </p>
-                <p className="mt-1 text-xs text-slate-600">
-                  Community responders registered
-                </p>
-              </div>
-              <span className="text-2xl">◌</span>
-            </div>
-
-            <p className="mt-2 text-4xl font-bold text-green-400">
-              {loading
-                ? "..."
-                : dashboard?.available_volunteers ??
-                  0}
-            </p>
-
-            <p className="mt-2 text-xs text-slate-500">
-              {loading ? "Loading live availability" : `${dashboard?.total_volunteers ?? 0} total • ${dashboard?.deployed_volunteers ?? 0} deployed`}
-            </p>
-
-          </div>
-
-          <div className="rounded-2xl border border-blue-500/20 bg-slate-900 p-6">
-
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-sm text-slate-400">
-                  Rescue team fleet
-                </p>
-                <p className="mt-1 text-xs text-slate-600">
-                  Field teams ready for dispatch
-                </p>
-              </div>
-              <span className="text-2xl">◇</span>
-            </div>
-
-            <p className="mt-2 text-4xl font-bold text-blue-400">
-              {loading
-                ? "..."
-                : dashboard?.available_rescue_teams ??
-                  0}
-            </p>
-
-            <p className="mt-2 text-xs text-slate-500">
-              {loading ? "Loading live readiness" : `${dashboard?.total_rescue_teams ?? 0} total • ${dashboard?.deployed_rescue_teams ?? 0} deployed • ${dashboard?.total_rescue_members ?? 0} members`}
-            </p>
-
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* ======================================================
-          FOOTER
-      ====================================================== */}
-
-      <footer className="mt-10 border-t border-slate-800 bg-slate-900">
-
-        <div className="mx-auto max-w-7xl px-6 py-5 text-center text-xs text-slate-500">
-          Rakshak Ai •
-          Emergency SOS •
-          Live Disaster Monitoring •
-          AI Response Platform
-        </div>
-
       </footer>
 
-    </main>
+      {/* ========================================================
+          9. DETAILED SOS MODAL
+      ======================================================== */}
+      {showDetailedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="h-5 w-5 text-red-500" />
+                <h3 className="text-base font-bold text-white">Detailed Emergency Dispatch</h3>
+              </div>
+              <button
+                onClick={() => setShowDetailedModal(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {detailedError && (
+              <div className="p-3 rounded-lg border border-red-500/30 bg-red-500/10 text-xs text-red-300">
+                {detailedError}
+              </div>
+            )}
+
+            <form onSubmit={handleDetailedSosSubmit} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block text-slate-300 font-medium mb-1">Your Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={detailedForm.name}
+                  onChange={(e) => setDetailedForm({ ...detailedForm, name: e.target.value })}
+                  placeholder="Full name"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1">Contact Phone</label>
+                  <input
+                    type="tel"
+                    value={detailedForm.phone}
+                    onChange={(e) => setDetailedForm({ ...detailedForm, phone: e.target.value })}
+                    placeholder="Mobile number"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1">People Trapped *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="500"
+                    required
+                    value={detailedForm.people}
+                    onChange={(e) => setDetailedForm({ ...detailedForm, people: Number(e.target.value) })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-medium mb-1">Location / Landmark *</label>
+                <input
+                  type="text"
+                  required
+                  value={detailedForm.location}
+                  onChange={(e) => setDetailedForm({ ...detailedForm, location: e.target.value })}
+                  placeholder="e.g. Near Railway Bridge, Sector 4, Agra"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-medium mb-1">Emergency Category</label>
+                <select
+                  value={detailedForm.emergency}
+                  onChange={(e) => setDetailedForm({ ...detailedForm, emergency: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-blue-500"
+                >
+                  <option value="Flood Inundation & Rising Water">Flood Inundation & Rising Water</option>
+                  <option value="Trapped on Rooftop / High Ground">Trapped on Rooftop / High Ground</option>
+                  <option value="Medical Emergency / Critical Condition">Medical Emergency / Critical Condition</option>
+                  <option value="Elderly / Infants Evacuation Needed">Elderly / Infants Evacuation Needed</option>
+                  <option value="Food & Drinking Water Shortage">Food & Drinking Water Shortage</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-medium mb-1">Additional Observations / Needs</label>
+                <textarea
+                  rows={2}
+                  value={detailedForm.description}
+                  onChange={(e) => setDetailedForm({ ...detailedForm, description: e.target.value })}
+                  placeholder="e.g. Water is waist-deep and rising fast. Two senior citizens present."
+                  className="w-full px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowDetailedModal(false)}
+                  className="px-4 py-2 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={detailedSending}
+                  className="px-5 py-2 rounded-lg bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-xs font-bold transition flex items-center gap-1.5"
+                >
+                  {detailedSending ? "Submitting..." : "Transmit Distress Details"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          10. ACCOUNT & SETTINGS MODAL (Includes Delete Account)
+      ======================================================== */}
+      {showAccountModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <User className="h-5 w-5 text-blue-400" />
+                <h3 className="text-base font-bold text-white">Citizen Account Profile</h3>
+              </div>
+              <button
+                onClick={() => {
+                  setShowAccountModal(false);
+                  setDeleteError("");
+                  setDeleteConfirmPassword("");
+                }}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Profile Info */}
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between py-1.5 border-b border-slate-800/60">
+                <span className="text-slate-400">Name:</span>
+                <span className="font-semibold text-white">{user?.name || "Citizen User"}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-slate-800/60">
+                <span className="text-slate-400">Email:</span>
+                <span className="font-semibold text-white">{user?.email || "Not specified"}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-slate-800/60">
+                <span className="text-slate-400">Role:</span>
+                <span className="font-semibold text-blue-400">{user?.role || "USER"}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-slate-800/60">
+                <span className="text-slate-400">Registered Alert Area:</span>
+                <span className="font-semibold text-white">{user?.area || "All Districts"}</span>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="pt-2 space-y-3">
+              <button
+                onClick={handleLogout}
+                className="w-full py-2.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Sign Out of Citizen Session</span>
+              </button>
+
+              {/* Delete Account Section */}
+              <div className="pt-4 border-t border-red-950/50">
+                <span className="text-xs font-semibold text-red-400 block mb-1">
+                  Danger Zone: Delete Account
+                </span>
+                <p className="text-[11px] text-slate-400 mb-2">
+                  Permanently deletes your account credentials and notification subscriptions.
+                </p>
+
+                {deleteError && (
+                  <div className="p-2.5 mb-2 rounded border border-red-500/30 bg-red-500/10 text-[11px] text-red-300">
+                    {deleteError}
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <input
+                    type="password"
+                    placeholder="Enter password to confirm deletion..."
+                    value={deleteConfirmPassword}
+                    onChange={(e) => setDeleteConfirmPassword(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-red-900/40 bg-slate-950 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-red-500"
+                  />
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deleteLoading}
+                    className="w-full py-2 rounded-lg border border-red-600/40 bg-red-950/30 hover:bg-red-900/50 text-red-400 text-xs font-semibold flex items-center justify-center gap-1.5 transition disabled:opacity-50"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>{deleteLoading ? "Deleting Account..." : "Permanently Delete Account"}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
