@@ -1100,7 +1100,6 @@ export default function UserDashboard() {
           <div className="flex items-center gap-4">
             <Link href="/privacy" className="hover:text-slate-300 transition">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-slate-300 transition">Terms of Service</Link>
-            <Link href="/authority-dashboard" className="text-blue-400 hover:text-blue-300 transition">Authority Command Center</Link>
           </div>
         </div>
       </footer>

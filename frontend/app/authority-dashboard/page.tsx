@@ -132,6 +132,39 @@ function AuthorityCommandCenterContent() {
     router.replace(`/authority-dashboard?tab=${tab}`);
   };
 
+  // Security & Role Clearance State
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [authError, setAuthError] = useState("");
+
+  useEffect(() => {
+    try {
+      const rawUser = localStorage.getItem("disaster_user");
+      if (!rawUser) {
+        setAuthError("No active credentials detected. Access to the Command Center requires verified Authority clearance.");
+        setIsAuthorized(false);
+        setAuthChecked(true);
+        return;
+      }
+
+      const parsed = JSON.parse(rawUser);
+      const role = String(parsed?.role || "").toUpperCase();
+      if (role !== "AUTHORITY") {
+        setAuthError("Access Restricted: Citizen accounts do not have clearance for the Authority Command Center.");
+        setIsAuthorized(false);
+        setAuthChecked(true);
+        return;
+      }
+
+      setIsAuthorized(true);
+      setAuthChecked(true);
+    } catch {
+      setAuthError("Authentication verification error. Please sign in with Authority credentials.");
+      setIsAuthorized(false);
+      setAuthChecked(true);
+    }
+  }, []);
+
   // Operational Data States
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [districts, setDistricts] = useState<MapItem[]>([]);
@@ -256,10 +289,11 @@ function AuthorityCommandCenterContent() {
   }, []);
 
   useEffect(() => {
+    if (!isAuthorized) return;
     loadOperations();
     const interval = setInterval(loadOperations, 30000); // 30-sec live operational cycle
     return () => clearInterval(interval);
-  }, [loadOperations]);
+  }, [isAuthorized, loadOperations]);
 
   // Operational metrics
   const activeAlerts = useMemo(() => {
@@ -333,6 +367,68 @@ function AuthorityCommandCenterContent() {
       console.error("SOS update error:", err);
     }
   };
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-[#070b14] flex flex-col items-center justify-center text-slate-400 p-4">
+        <div className="flex items-center gap-3">
+          <Activity className="h-5 w-5 animate-spin text-blue-500" />
+          <span className="text-sm font-mono tracking-wider text-slate-300">
+            VERIFYING COMMAND CENTER CLEARANCE...
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-[#050811] text-slate-100 flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-md rounded-2xl border border-red-500/40 bg-slate-900/90 p-6 sm:p-8 shadow-2xl backdrop-blur text-center space-y-4">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-red-500/40 bg-red-600/20 text-red-400 shadow-xl shadow-red-900/30">
+            <ShieldAlert className="h-7 w-7" />
+          </div>
+
+          <div>
+            <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-red-400 block mb-1">
+              RESTRICTED DISASTER COMMAND TERMINAL
+            </span>
+            <h2 className="text-xl font-black text-white tracking-tight">Access Restricted</h2>
+            <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+              {authError || "Access to the District Disaster Management Authority (DDMA) Command Center requires verified authority credentials."}
+            </p>
+          </div>
+
+          <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 text-left text-xs text-slate-400 space-y-1">
+            <div className="flex justify-between">
+              <span className="text-slate-500">Authorized Personnel:</span>
+              <span className="text-slate-300 font-semibold">DDMA / SDMA / NDRF Officers</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">Public Access:</span>
+              <span className="text-emerald-400 font-semibold">Citizen Warning Portal</span>
+            </div>
+          </div>
+
+          <div className="pt-2 flex flex-col sm:flex-row gap-2">
+            <button
+              onClick={() => router.push("/login?role=authority")}
+              className="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-lg shadow-blue-900/30"
+            >
+              <span>Sign In as Authority</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => router.push("/user-dashboard")}
+              className="flex-1 py-2.5 px-4 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition"
+            >
+              <span>Citizen Portal</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-[#070b14] text-slate-100">
